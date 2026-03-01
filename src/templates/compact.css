@@ -1,0 +1,5 @@
+/* Compact overrides for data pages (denser layout) */
+h1 { margin-bottom: 5px; }
+.nav { margin-bottom: 10px; }
+.stats-row { gap: 10px; margin-bottom: 10px; }
+.stat-card { padding: 6px 14px; border-radius: 6px; border-left-width: 3px; }

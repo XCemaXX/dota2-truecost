@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axioms - Dota 2 Item Analysis (Patch 7.40c)</title>
+    <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #eee;
+    min-height: 100vh;
+    padding: 20px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+h1 { color: #f4d03f; margin-bottom: 10px; font-size: 1.8em; }
+.subtitle { color: #888; margin-bottom: 20px; font-size: 0.9em; }
+a { color: #5dade2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Navigation */
+.nav { margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+.nav a {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 8px 16px;
+    border-radius: 5px;
+    color: #5dade2;
+    transition: background 0.2s;
+}
+.nav a:hover { background: rgba(93, 173, 226, 0.2); text-decoration: none; }
+.nav a.active { background: #5dade2; color: #1a1a2e; }
+
+/* Stats cards */
+.stats-row {
+    display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.stat-card {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 12px 20px; border-radius: 8px;
+    border-left: 4px solid #5dade2;
+}
+.stat-card.overvalued { border-left-color: #27a95d; }
+.stat-card.undervalued { border-left-color: #e74c3c; }
+.stat-card.fair { border-left-color: #86cef3; }
+.stat-value { font-size: 22px; font-weight: bold; }
+.stat-label { font-size: 11px; color: #aaa; text-transform: uppercase; }
+
+/* Tables */
+.table-container { overflow-x: auto; margin-bottom: 20px; }
+table { border-collapse: collapse; width: 100%; background: rgba(26, 26, 46, 0.9); }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; }
+th {
+    background: #2d3436;
+    color: #f4d03f;
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+}
+th:hover { background: #3d4446; }
+th.sorted-asc::after { content: ' \25B2'; font-size: 0.7em; }
+th.sorted-desc::after { content: ' \25BC'; font-size: 0.7em; }
+tr:hover { background: rgba(93, 173, 226, 0.1); }
+.text-muted { color: #888; font-size: 0.85em; }
+.text-green { color: #27a95d; }
+.text-red { color: #e74c3c; }
+.text-yellow { color: #86cef3; }
+.text-blue { color: #5dade2; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    h1 { font-size: 1.4em; }
+    .stats-row { flex-direction: column; }
+    th, td { padding: 8px; font-size: 0.9em; }
+}
+/* Compact overrides for data pages (denser layout) */
+h1 { margin-bottom: 5px; }
+.nav { margin-bottom: 10px; }
+.stats-row { gap: 10px; margin-bottom: 10px; }
+.stat-card { padding: 6px 14px; border-radius: 6px; border-left-width: 3px; }
+
+.category-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    background: rgba(93, 173, 226, 0.2);
+    color: #5dade2;
+}
+.category-badge.attributes { background: rgba(46, 204, 113, 0.2); color: #27a95d; }
+.category-badge.offense { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+.category-badge.defense { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+.category-badge.sustain { background: rgba(155, 89, 182, 0.2); color: #9b59b6; }
+.category-badge.aura { background: rgba(241, 196, 15, 0.2); color: #f1c40f; }
+.category-badge.utility { background: rgba(26, 188, 156, 0.2); color: #1abc9c; }
+.status-active { color: #27a95d; }
+.status-unknown { color: #e74c3c; }
+.depends { font-size: 0.8em; color: #888; }
+    
+.nav-right { margin-left: auto; display: flex; gap: 15px; align-items: center; }
+#patchSelect {
+    background: rgba(45, 52, 54, 0.8);
+    color: #5dade2;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+#patchSelect:hover { background: rgba(93, 173, 226, 0.2); }
+#patchSelect option { background: #2d3436; color: #eee; }
+</style>
+</head>
+<body data-patch="7.40c">
+    <div class="container">
+        <h1>7.40c: Axiom Definitions</h1>
+
+        <div class="nav"><a href="axioms_table.html" class="active">Axioms</a> <a href="items_table.html" class="">Items</a> <a href="interactive_chart.html" class="">Chart</a><div class="nav-right"><select id="patchSelect"></select><a href="../comparison.html">Comparison</a></div></div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">88</div>
+                <div class="stat-label">Total Axioms</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">24</div>
+                <div class="stat-label">Offense</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">11</div>
+                <div class="stat-label">Aura</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">10</div>
+                <div class="stat-label">Defense</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Sustain</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Disable</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="axiomsTable">
+                <thead>
+                    <tr>
+                        <th data-col="name">Name</th>
+                        <th data-col="gold">Gold/Point</th>
+                        <th data-col="method">Method</th>
+                        <th data-col="reference">Reference Item</th>
+                        <th data-col="category">Category</th>
+                        <th data-col="status">Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Max Mana %</strong><br><span class="text-muted">bonus_max_mana_percentage</span></td>
+                        <td class="text-green">24.96g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">3.20 * 780 * 0.01 = 24.96<div class="depends">Depends: bonus_mana</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Crit Expected DPS</strong><br><span class="text-muted">crit_expected_dps</span></td>
+                        <td class="text-green">100g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">50.00 * 200 * 0.01 = 100.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>HP Regen Amplification</strong><br><span class="text-muted">hp_regen_amp</span></td>
+                        <td class="text-green">14g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">140.00 * 10 * 0.01 = 14.00<div class="depends">Depends: bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Regen Multiplier</strong><br><span class="text-muted">mana_regen_multiplier</span></td>
+                        <td class="text-green">10.00g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">250.00 * 4 * 0.01 = 10.00<div class="depends">Depends: bonus_mana_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Missing HP Regen</strong><br><span class="text-muted">missing_health_regen</span></td>
+                        <td class="text-green">1260g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">140.00 * 900 * 0.01 = 1260.00<div class="depends">Depends: bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Agility</strong><br><span class="text-muted">bonus_agility</span></td>
+                        <td class="text-green">100g</td>
+                        <td>reference_item</td>
+                        <td>Blade Of Alacrity</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">1000.0 / 10.0 = 100.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>All Stats</strong><br><span class="text-muted">bonus_all_stats</span></td>
+                        <td class="text-green">100g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(bonus_strength + bonus_agility + bonus_intellect) / 3 = 100.00<div class="depends">Depends: bonus_agility, bonus_strength, bonus_intellect</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Intelligence</strong><br><span class="text-muted">bonus_intellect</span></td>
+                        <td class="text-green">100g</td>
+                        <td>reference_item</td>
+                        <td>Staff Of Wizardry</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">1000.0 / 10.0 = 100.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Strength</strong><br><span class="text-muted">bonus_strength</span></td>
+                        <td class="text-green">100g</td>
+                        <td>reference_item</td>
+                        <td>Ogre Axe</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">1000.0 / 10.0 = 100.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Attack Speed Aura</strong><br><span class="text-muted">aura_attack_speed</span></td>
+                        <td class="text-green">33.75g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_attack_speed * aura_avg_targets = 33.75<div class="depends">Depends: bonus_attack_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Health Regen Aura</strong><br><span class="text-muted">aura_health_regen</span></td>
+                        <td class="text-green">210g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health_regen * aura_avg_targets = 210.00<div class="depends">Depends: bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Regen Aura</strong><br><span class="text-muted">aura_mana_regen</span></td>
+                        <td class="text-green">375.00g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_mana_regen * aura_avg_targets = 375.00<div class="depends">Depends: bonus_mana_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Negative Armor Aura</strong><br><span class="text-muted">aura_negative_armor</span></td>
+                        <td class="text-green">-206.25g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">aura_positive_armor * -1 = -206.25<div class="depends">Depends: aura_positive_armor</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Negative Attack Speed Aura</strong><br><span class="text-muted">aura_negative_attack_speed</span></td>
+                        <td class="text-green">-33.75g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">aura_attack_speed * -1 = -33.75<div class="depends">Depends: aura_attack_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Positive Armor Aura</strong><br><span class="text-muted">aura_positive_armor</span></td>
+                        <td class="text-green">206.25g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_aoe_armor = 206.25<div class="depends">Depends: bonus_aoe_armor</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor Aura</strong><br><span class="text-muted">bonus_aoe_armor</span></td>
+                        <td class="text-green">206.25g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_armor * aura_avg_targets = 206.25<div class="depends">Depends: bonus_armor</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage Aura</strong><br><span class="text-muted">damage_aura</span></td>
+                        <td class="text-green">150g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage * expected_attack_damage / 100 * aura_avg_targets = 150.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifesteal Aura</strong><br><span class="text-muted">lifesteal_aura</span></td>
+                        <td class="text-green">75g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_lifesteal * aura_avg_targets = 75.00<div class="depends">Depends: bonus_lifesteal</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Replenish</strong><br><span class="text-muted">replenish_amount</span></td>
+                        <td class="text-green">375.00g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">aura_mana_regen = 375.00<div class="depends">Depends: aura_mana_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Reduction Aura %</strong><br><span class="text-muted">restoration_reduction_aura</span></td>
+                        <td class="text-green">21g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health_regen * expected_hp_regen / 100 * aura_avg_targets = 21.00<div class="depends">Depends: bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Absorb Amount</strong><br><span class="text-muted">absorb_amount</span></td>
+                        <td class="text-green">2g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health / 2 = 2.00<div class="depends">Depends: bonus_health</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Block Damage (Melee)</strong><br><span class="text-muted">block_damage_melee</span></td>
+                        <td class="text-green">15.28g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_armor / expected_physical_damage / armor_damage_factor = 15.28<div class="depends">Depends: bonus_armor</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Block Damage (Ranged)</strong><br><span class="text-muted">block_damage_ranged</span></td>
+                        <td class="text-green">15.28g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_armor / expected_physical_damage / armor_damage_factor = 15.28<div class="depends">Depends: bonus_armor</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor</strong><br><span class="text-muted">bonus_armor</span></td>
+                        <td class="text-green">137.50g</td>
+                        <td>reference_item</td>
+                        <td>Chainmail</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">550.0 / 4.0 = 137.50</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Evasion</strong><br><span class="text-muted">bonus_evasion</span></td>
+                        <td class="text-green">86.67g</td>
+                        <td>reference_item</td>
+                        <td>Talisman Of Evasion</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">1300.0 / 15.0 = 86.67</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Health</strong><br><span class="text-muted">bonus_health</span></td>
+                        <td class="text-green">4g</td>
+                        <td>reference_item</td>
+                        <td>Vitality Booster</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">1000.0 / 250.0 = 4.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Magic Resistance</strong><br><span class="text-muted">bonus_magic_resistance</span></td>
+                        <td class="text-green">40g</td>
+                        <td>reference_item</td>
+                        <td>Cloak</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">800.0 / 20.0 = 40.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage Reflection %</strong><br><span class="text-muted">damage_reflection_pct</span></td>
+                        <td class="text-green">37.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage * expected_physical_damage / 100 / 2 = 37.50<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor Penalty</strong><br><span class="text-muted">penalty_armor</span></td>
+                        <td class="text-green">-137.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_armor * -1 = -137.50<div class="depends">Depends: bonus_armor</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Slow Resistance</strong><br><span class="text-muted">slow_resistance</span></td>
+                        <td class="text-green">13.80g</td>
+                        <td>reference_item</td>
+                        <td>Sange</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(2100.0 - 1824.0) / 20.0 = 13.80<div class="depends">Depends: bonus_strength, hp_regen_amp</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed Aura</strong><br><span class="text-muted">aura_movement_speed</span></td>
+                        <td class="text-green">16.67g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed * aura_avg_targets = 16.67<div class="depends">Depends: bonus_movement_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed % Aura</strong><br><span class="text-muted">aura_movement_speed_pct</span></td>
+                        <td class="text-green">60.83g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed_pct * aura_avg_targets = 60.83<div class="depends">Depends: bonus_movement_speed_pct</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Amplification</strong><br><span class="text-muted">heal_amplification</span></td>
+                        <td class="text-green">28g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">hp_regen_amp * 2 = 28.00<div class="depends">Depends: hp_regen_amp</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifesteal Amplification</strong><br><span class="text-muted">lifesteal_amplification</span></td>
+                        <td class="text-green">24.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">hp_regen_amp * 1.75 = 24.50<div class="depends">Depends: hp_regen_amp</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Magic Resistance Aura</strong><br><span class="text-muted">magic_resistance_aura</span></td>
+                        <td class="text-green">60g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_magic_resistance * aura_avg_targets = 60.00<div class="depends">Depends: bonus_magic_resistance</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cyclone (per sqrt-sec)</strong><br><span class="text-muted">cc_cyclone</span></td>
+                        <td class="text-green">800g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 0.4 = 800.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Disarm (per sqrt-sec)</strong><br><span class="text-muted">cc_disarm</span></td>
+                        <td class="text-green">400g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 0.2 = 400.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hex (per sqrt-sec)</strong><br><span class="text-muted">cc_hex</span></td>
+                        <td class="text-green">2000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 1.0 = 2000.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Immunity (per sqrt-sec)</strong><br><span class="text-muted">cc_immunity</span></td>
+                        <td class="text-green">2000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 1.0 = 2000.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Reflect (per sqrt-sec)</strong><br><span class="text-muted">cc_reflect</span></td>
+                        <td class="text-green">400g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 0.2 = 400.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Root (per sqrt-sec)</strong><br><span class="text-muted">cc_root</span></td>
+                        <td class="text-green">1000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 0.5 = 1000.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Silence (per sqrt-sec)</strong><br><span class="text-muted">cc_silence</span></td>
+                        <td class="text-green">1200g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 0.6 = 1200.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stun (per sqrt-sec)</strong><br><span class="text-muted">cc_stun</span></td>
+                        <td class="text-green">2000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">base_disable_gold * 1.0 = 2000.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed %</strong><br><span class="text-muted">bonus_movement_speed_percent</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>reference_item</td>
+                        <td>Boots</td>
+                        <td><span class="category-badge mobility">mobility</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">500.0 / 45.0 = 11.11</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phase Movement Speed</strong><br><span class="text-muted">phase_movement_speed</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge mobility">mobility</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed = 11.11<div class="depends">Depends: bonus_movement_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phase Movement Speed (Ranged)</strong><br><span class="text-muted">phase_movement_speed_range</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge mobility">mobility</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed = 11.11<div class="depends">Depends: bonus_movement_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed</strong><br><span class="text-muted">bonus_movement_speed</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>reference_item</td>
+                        <td>Boots</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">500.0 / 45.0 = 11.11</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed (Melee)</strong><br><span class="text-muted">bonus_movement_speed_melee</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed * 1.0 = 11.11<div class="depends">Depends: bonus_movement_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed %</strong><br><span class="text-muted">bonus_movement_speed_pct</span></td>
+                        <td class="text-green">40.56g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed * expected_move_speed / 100 = 40.56<div class="depends">Depends: bonus_movement_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed (Ranged)</strong><br><span class="text-muted">bonus_movement_speed_ranged</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed * 1.0 = 11.11<div class="depends">Depends: bonus_movement_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Displacement</strong><br><span class="text-muted">displacement</span></td>
+                        <td class="text-green">1.88g</td>
+                        <td>reference_item</td>
+                        <td>Blink</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">2250.0 / 1200.0 = 1.88</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AoE Burst Damage</strong><br><span class="text-muted">blast_aoe_damage</span></td>
+                        <td class="text-green">4g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health = 4.00<div class="depends">Depends: bonus_health</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>AoE Slow (MS equiv)</strong><br><span class="text-muted">blast_slow_value</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_movement_speed = 11.11<div class="depends">Depends: bonus_movement_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Attack Speed</strong><br><span class="text-muted">bonus_attack_speed</span></td>
+                        <td class="text-green">22.50g</td>
+                        <td>reference_item</td>
+                        <td>Gloves</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">450.0 / 20.0 = 22.50</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Attack Speed Percent</strong><br><span class="text-muted">bonus_attack_speed_pct</span></td>
+                        <td class="text-green">22.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_attack_speed = 22.50<div class="depends">Depends: bonus_attack_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pierce Damage</strong><br><span class="text-muted">bonus_chance_damage</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage = 50.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage</strong><br><span class="text-muted">bonus_damage</span></td>
+                        <td class="text-green">50g</td>
+                        <td>reference_item</td>
+                        <td>Blades Of Attack</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">450.0 / 9.0 = 50.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Base Damage</strong><br><span class="text-muted">bonus_damage_base</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage = 50.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage (Melee)</strong><br><span class="text-muted">bonus_damage_melee</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage * 1.0 = 50.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage (Ranged)</strong><br><span class="text-muted">bonus_damage_range</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage * 1.0 = 50.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bonus Gold</strong><br><span class="text-muted">bonus_gold</span></td>
+                        <td class="text-green">16.67g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">1500 / 90 = 16.67</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Damage</strong><br><span class="text-muted">bonus_spell_damage</span></td>
+                        <td class="text-green">4g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health = 4.00<div class="depends">Depends: bonus_health</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chain Lightning Damage</strong><br><span class="text-muted">chain_damage</span></td>
+                        <td class="text-green">41.36g</td>
+                        <td>reference_item</td>
+                        <td>Maelstrom</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(2950.0 - 1812.5) / 110.0 / 25.0% = 41.36<div class="depends">Depends: bonus_damage, bonus_attack_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cold AS Slow (Melee)</strong><br><span class="text-muted">cold_attack_slow_melee</span></td>
+                        <td class="text-green">-22.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">-1 * bonus_attack_speed = -22.50<div class="depends">Depends: bonus_attack_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cold AS Slow (Ranged)</strong><br><span class="text-muted">cold_attack_slow_ranged</span></td>
+                        <td class="text-green">-22.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">-1 * bonus_attack_speed = -22.50<div class="depends">Depends: bonus_attack_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor Reduction</strong><br><span class="text-muted">corruption_armor</span></td>
+                        <td class="text-green">-150g</td>
+                        <td>reference_item</td>
+                        <td>Blight Stone</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">300.0 / -2.0 = -150.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Magic/Ability Damage</strong><br><span class="text-muted">damage</span></td>
+                        <td class="text-green">4g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health = 4.00<div class="depends">Depends: bonus_health</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage Per Second</strong><br><span class="text-muted">damage_per_second</span></td>
+                        <td class="text-green">15g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage * aura_avg_targets * permanent_dmg_uptime_during_whole_game = 15.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Burn</strong><br><span class="text-muted">feedback_mana_burn</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage = 50.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Reduction</strong><br><span class="text-muted">heal_reduction</span></td>
+                        <td class="text-green">14g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">hp_regen_amp = 14.00<div class="depends">Depends: hp_regen_amp</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Illusion DPS (dmg equiv)</strong><br><span class="text-muted">illusion_dps</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage = 50.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Intelligence Damage</strong><br><span class="text-muted">int_damage</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_damage = 50.00<div class="depends">Depends: bonus_damage</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Slow</strong><br><span class="text-muted">movespeed_slow</span></td>
+                        <td class="text-green">-11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">-1 * bonus_movement_speed_percent = -11.11<div class="depends">Depends: bonus_movement_speed_percent</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Reduction (single target) %</strong><br><span class="text-muted">restoration_reduction_enemy</span></td>
+                        <td class="text-green">14g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health_regen * expected_hp_regen / 100 = 14.00<div class="depends">Depends: bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Amplification</strong><br><span class="text-muted">spell_amp</span></td>
+                        <td class="text-green">10g</td>
+                        <td>reference_item</td>
+                        <td>Kaya</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(2100.0 - 2000.0) / 10.0 = 10.00<div class="depends">Depends: bonus_intellect, mana_regen_multiplier</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Night Vision</strong><br><span class="text-muted">bonus_night_vision</span></td>
+                        <td class="text-green">2.12g</td>
+                        <td>reference_item</td>
+                        <td>Moon Shard</td>
+                        <td><span class="category-badge special">special</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(4000.0 - 3150.0) / 400.0 = 2.12<div class="depends">Depends: bonus_attack_speed</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Switchable Attribute</strong><br><span class="text-muted">bonus_stat</span></td>
+                        <td class="text-green">100g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge special">special</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_strength = 100.00<div class="depends">Depends: bonus_strength</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>HP Regen</strong><br><span class="text-muted">bonus_health_regen</span></td>
+                        <td class="text-green">140g</td>
+                        <td>reference_item</td>
+                        <td>Ring Of Regen</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">175.0 / 1.25 = 140.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifesteal</strong><br><span class="text-muted">bonus_lifesteal</span></td>
+                        <td class="text-green">50g</td>
+                        <td>reference_item</td>
+                        <td>Lifesteal</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">900.0 / 18.0 = 50.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana</strong><br><span class="text-muted">bonus_mana</span></td>
+                        <td class="text-green">3.20g</td>
+                        <td>reference_item</td>
+                        <td>Energy Booster</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">800.0 / 250.0 = 3.20</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MP Regen</strong><br><span class="text-muted">bonus_mana_regen</span></td>
+                        <td class="text-green">250.00g</td>
+                        <td>reference_item</td>
+                        <td>Sobi Mask</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">175.0 / 0.7 = 250.00</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Gain (sacrifice)</strong><br><span class="text-muted">mana_gain</span></td>
+                        <td class="text-green">55.00g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(bonus_mana_regen - bonus_health_regen) / 2 = 55.00<div class="depends">Depends: bonus_mana_regen, bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>HP Regen Penalty</strong><br><span class="text-muted">penalty_health_regen</span></td>
+                        <td class="text-green">-140g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health_regen * -1 = -140.00<div class="depends">Depends: bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Restore per Charge</strong><br><span class="text-muted">restore_per_charge</span></td>
+                        <td class="text-green">390g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_health_regen + bonus_mana_regen = 390.00<div class="depends">Depends: bonus_mana_regen, bonus_health_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Lifesteal</strong><br><span class="text-muted">spell_lifesteal</span></td>
+                        <td class="text-green">54.17g</td>
+                        <td>reference_item</td>
+                        <td>Voodoo Mask</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">650.0 / 12.0 = 54.17</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cooldown Reduction</strong><br><span class="text-muted">bonus_cooldown</span></td>
+                        <td class="text-green">6.40g</td>
+                        <td>reference_item</td>
+                        <td>Octarine Core</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(4900.0 - 4740.0) / 25.0 = 6.40<div class="depends">Depends: bonus_health, bonus_mana, bonus_mana_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cast Range</strong><br><span class="text-muted">cast_range_bonus</span></td>
+                        <td class="text-green">3.07g</td>
+                        <td>reference_item</td>
+                        <td>Aether Lens</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">(2275.0 - 1585.0) / 225.0 = 3.07<div class="depends">Depends: bonus_mana, bonus_mana_regen</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Cost Reduction</strong><br><span class="text-muted">manacost_reduction</span></td>
+                        <td class="text-green">24.96g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="status-active">active</td>
+                        <td class="text-muted">bonus_max_mana_percentage = 24.96<div class="depends">Depends: bonus_max_mana_percentage</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const table = document.getElementById('axiomsTable');
+        const headers = table.querySelectorAll('th[data-col]');
+        let currentSort = { col: null, desc: false };
+
+        headers.forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                const desc = currentSort.col === col ? !currentSort.desc : false;
+                currentSort = { col, desc };
+
+                // Update header classes
+                headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                th.classList.add(desc ? 'sorted-desc' : 'sorted-asc');
+
+                // Sort rows
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const colIndex = Array.from(headers).indexOf(th);
+                    const aVal = a.cells[colIndex].textContent.trim().toLowerCase();
+                    const bVal = b.cells[colIndex].textContent.trim().toLowerCase();
+
+                    // Try numeric sort for gold column
+                    if (col === 'gold') {
+                        const aNum = parseFloat(aVal.replace(/[^0-9.-]/g, '')) || 0;
+                        const bNum = parseFloat(bVal.replace(/[^0-9.-]/g, '')) || 0;
+                        return desc ? bNum - aNum : aNum - bNum;
+                    }
+
+                    return desc ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    })();
+    </script>
+
+<script src="../patches.js"></script>
+<script>
+(function() {
+    var sel = document.getElementById('patchSelect');
+    if (!sel || typeof PATCHES_LIST === 'undefined') return;
+    var currentPatch = document.body.getAttribute('data-patch');
+    var page = location.pathname.split('/').pop() || 'interactive_chart.html';
+    for (var i = PATCHES_LIST.length - 1; i >= 0; i--) {
+        var opt = document.createElement('option');
+        opt.value = PATCHES_LIST[i];
+        opt.textContent = 'Patch ' + PATCHES_LIST[i];
+        if (PATCHES_LIST[i] === currentPatch) opt.selected = true;
+        sel.appendChild(opt);
+    }
+    sel.addEventListener('change', function() {
+        location.href = '../patch_' + this.value + '/' + page;
+    });
+})();
+</script>
+</body>
+</html>

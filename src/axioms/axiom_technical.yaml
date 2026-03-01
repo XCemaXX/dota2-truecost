@@ -1,0 +1,283 @@
+# Technical Configuration — rarely edited
+# Maps stat aliases, defines globally ignored stats, and excluded items.
+
+# =============================================================================
+# STAT NORMALIZATION - Maps alternative stat names to canonical names
+# =============================================================================
+# Merged from: AXIOM_ALIASES (axioms.py) + STAT_NAME_MAPPING (naming.py)
+
+stat_normalization:
+  # Attributes
+  bonus_str: bonus_strength
+  bonus_agi: bonus_agility
+  bonus_int: bonus_intellect
+  all_stats: bonus_all_stats
+  bonus_stats: bonus_all_stats
+
+  # Health/Mana
+  bonus_hp: bonus_health
+  health: bonus_health
+  mana: bonus_mana
+
+  # Regeneration
+  bonus_hp_regen: bonus_health_regen
+  bonus_mp_regen: bonus_mana_regen
+  bonus_regen: bonus_health_regen
+  health_regen: bonus_health_regen
+  hp_regen: bonus_health_regen
+  mana_regen: bonus_mana_regen
+
+  # Movement
+  movement_speed: bonus_movement_speed
+  bonus_movement: bonus_movement_speed
+  movement_speed_percent_bonus: bonus_movement_speed_percent
+
+  # Combat - Damage
+  attack_damage: bonus_damage
+
+  # Combat - Attack Speed
+  attack_speed: bonus_attack_speed
+
+  # Combat - Armor
+  armor: bonus_armor
+  reduce_armor: corruption_armor
+
+  # Magic
+  bonus_magical_armor: bonus_magic_resistance
+  bonus_spell_resist: bonus_magic_resistance
+  magic_resist: bonus_magic_resistance
+  magic_resistance: bonus_magic_resistance
+  spell_damage: bonus_spell_damage
+  bonus_spell_amp: spell_amp
+  spell_amplification: spell_amp
+  # int_damage_multiplier: removed — valued via custom_stats (Witch Blade/Parasma)
+
+  # Lifesteal
+  lifesteal: bonus_lifesteal
+  lifesteal_percent: bonus_lifesteal
+  dagon_spell_lifesteal: spell_lifesteal
+  passive_spell_lifesteal: spell_lifesteal
+
+  # Armlet toggle stats → base axioms
+  unholy_bonus_strength: bonus_strength
+  unholy_bonus_damage: bonus_damage
+  unholy_bonus_armor: bonus_armor
+  unholy_health_drain_per_second: bonus_health_regen  # HP drain/s mapped to HP regen axiom
+
+  # MoM penalty stat → base axiom
+  berserk_armor_reduction: bonus_armor
+
+  # Ghost Scepter penalty → magic resistance axiom
+  extra_spell_damage_percent: bonus_magic_resistance
+
+  # Displacement
+  blink_range: displacement
+  push_length: displacement
+
+  # Persistent DPS
+  aura_damage: damage_per_second
+  dps: bonus_damage
+
+  # Other
+  evasion: bonus_evasion
+  armor_aura: bonus_aoe_armor
+  aura_armor: bonus_aoe_armor
+  mana_regen_aura: aura_mana_regen
+  status_resistance: slow_resistance
+  status_resist: slow_resistance
+  slow_resist: slow_resistance
+  health_regen_amplification: hp_regen_amp
+  mana_loss_reduction: mana_regen_multiplier
+  cooldown_reduction: bonus_cooldown
+  # tooltip_crit_damage: removed (crit_multiplier no longer an axiom)
+  agility: bonus_agility
+
+  # Active ability stat mappings (for uptime_stats)
+  active_movement_speed: bonus_movement_speed
+  barrier_block: absorb_amount
+  damage_absorb: absorb_amount
+  berserk_bonus_attack_speed: bonus_attack_speed
+  berserk_bonus_movement_speed: bonus_movement_speed
+  bonus_agi_active: bonus_agility
+  heal_amount: bonus_health
+  mana_amount: bonus_mana
+  target_armor: bonus_armor
+  target_attack_speed: bonus_attack_speed
+  target_movement_speed: bonus_movement_speed
+  unholy_lifesteal_percent: bonus_lifesteal
+  windwalk_bonus_damage: damage
+  windwalk_movement_speed: bonus_movement_speed
+  movement_slow: bonus_movement_speed_percent
+  slow_melee: movespeed_slow
+  slow_ranged: movespeed_slow
+  cold_slow_melee: movespeed_slow
+  cold_slow_ranged: movespeed_slow
+  damage_base: damage
+  spell_amp_debuff: spell_amp
+  soul_release_value: damage
+  meteor_stun: cc_stun
+  meteor_damage: damage
+  meteor_slow: bonus_movement_speed_percent
+  soul_stealer_damage: bonus_damage
+  guard_block: block_damage_melee
+  witch_blade_dot: damage
+  witch_blade_slow: bonus_movement_speed_percent
+  magic_corruption: bonus_magic_resistance
+  charge_burst_heal: damage
+  heal_amp_value: bonus_health_regen
+  self_movement_speed: bonus_movement_speed
+  empower_slow: bonus_movement_speed_percent
+  suppress_slow: bonus_movement_speed_percent
+  pierce_damage: bonus_damage
+  attack_slow: bonus_attack_speed
+
+# =============================================================================
+# IGNORED STATS - Stats excluded from valuation
+# =============================================================================
+# Each stat must have a reason explaining why it is ignored.
+# Minimize this section - prefer adding axioms over ignoring stats.
+
+ignored_stats:
+  # -------------------------------------------------------------------------
+  # Global ignored stats — only stats used by 3+ items remain here.
+  # Item-specific ignored stats live in item_overrides.{item}.ignored_stats.
+  # -------------------------------------------------------------------------
+  global:
+    # Radii and ranges (3+ items)
+    radius: { reason: "Generic ability radius parameter" }
+    aura_radius: { reason: "Area of effect radius for aura abilities" }
+    charge_radius: { reason: "Radius for charge-based abilities" }
+    blink_range_clamp: { reason: "Blink range clamp distance" }
+    vision_radius: { reason: "Vision provided by ability" }
+
+    # Durations (3+ items)
+    duration: { reason: "Generic ability duration" }
+    slow_duration: { reason: "Slow effect duration" }
+
+    # Cooldowns (3+ items)
+    blink_damage_cooldown: { reason: "Blink cooldown when taking damage" }
+
+    # Charges and counts (3+ items)
+    max_charges: { reason: "Maximum charge capacity" }
+
+    # Chances and probabilities (3+ items)
+    block_chance: { reason: "Chance modifier for block_damage_melee (consumed by chance_stat)" }
+    crit_chance: { reason: "Crit chance (compound mechanic, valued via ability_value)" }
+    crit_multiplier: { reason: "Crit multiplier (compound mechanic, valued via ability_value)" }
+
+    # Speeds and distances (3+ items)
+    projectile_speed: { reason: "Projectile travel speed" }
+    base_attack_range: { reason: "Attack range bonus — free stat on Dragon Lance/Hurricane Pike (stats > item cost)" }
+    bonus_attack_range: { reason: "Attack range bonus alias" }
+    attack_range: { reason: "Attack range bonus alias" }
+    creep_bonus_damage: { reason: "Dominated creep damage — not hero damage" }
+    creep_bonus_hp_regen: { reason: "Dominated creep HP regen — not hero stat" }
+
+    # Misc parameters (3+ items)
+    max_level: { reason: "Maximum ability level" }
+    model_scale: { reason: "Visual model scale" }
+    damage_delay: { reason: "Delay before damage is applied" }
+
+    # Tooltip only (3+ items)
+    mana_cost_tooltip: { reason: "Mana cost display tooltip" }
+
+    # Ability effects (3+ items)
+    illusion_multiplier_pct: { reason: "Flag (100% = illusions receive effect), no value" }
+
+# =============================================================================
+# EXCLUDED ITEMS - Items removed from analysis entirely
+# =============================================================================
+
+excluded_items:
+  # Patterns (regex matching)
+  patterns:
+    - pattern: "item_recipe_.*"
+      reason: "Recipes have no stats, cost goes to combined item"
+    - pattern: ".*_recipe$"
+      reason: "Recipe items (suffix pattern)"
+
+  # Exclusion by item flags
+  flags:
+    ItemCost_0:
+      reason: "Zero cost items - not purchasable"
+    ItemRecipe_1:
+      reason: "Recipe items"
+    IsObsolete_1:
+      reason: "Obsolete/removed items"
+    ItemIsNeutralActiveDrop_1:
+      reason: "Neutral items - not purchasable"
+    ItemIsNeutralPassiveDrop_1:
+      reason: "Neutral items - not purchasable"
+
+  # Specific items by ID
+  items:
+    item_tango:
+      reason: "Consumable - one-time use healing"
+    item_tango_single:
+      reason: "Consumable - single tango"
+    item_clarity:
+      reason: "Consumable - one-time use mana restore"
+    item_flask:
+      reason: "Consumable - Healing Salve, one-time use"
+    item_dust:
+      reason: "Consumable - Dust of Appearance"
+    item_smoke_of_deceit:
+      reason: "Consumable - Smoke of Deceit"
+    item_ward_observer:
+      reason: "Support item - vision utility, no combat stats"
+    item_ward_sentry:
+      reason: "Support item - vision utility, no combat stats"
+    item_ward_dispenser:
+      reason: "Support item - ward dispenser"
+    item_courier:
+      reason: "Support item - no combat stats, utility only"
+    item_flying_courier:
+      reason: "Support item - no combat stats, utility only"
+    item_tpscroll:
+      reason: "Consumable - Town Portal Scroll"
+    item_tome_of_knowledge:
+      reason: "Consumable - XP item"
+    item_cheese:
+      reason: "Roshan drop - consumable heal"
+    item_aegis:
+      reason: "Roshan drop - not purchasable"
+    item_refresher_shard:
+      reason: "Roshan drop - limited use active"
+    item_aghanims_shard:
+      reason: "Special item - hero-specific upgrade"
+    item_pocket_roshan:
+      reason: "Special Roshan drop"
+    item_bottle:
+      reason: "Consumable - charge-based regen + rune storage"
+    item_blood_grenade:
+      reason: "Consumable - single-use thrown grenade"
+    item_aghanims_shard_roshan:
+      reason: "Roshan drop - Aghanim's Shard"
+    item_royale_with_cheese:
+      reason: "Special Roshan drop - Cheese upgrade"
+    item_ultimate_scepter:
+      reason: "Hero-specific upgrade - no generic stats to evaluate"
+    item_ultimate_scepter_2:
+      reason: "Hero-specific upgrade - Aghanim's Blessing (Roshan)"
+    item_ultimate_scepter_roshan:
+      reason: "Roshan drop - not purchasable"
+    item_quelling_blade:
+      reason: "Farming utility only - 0% efficiency, no combat stats"
+    item_angels_demise:
+      reason: "Non-existent item in patch 7.40c"
+    item_samurai_tabi:
+      reason: "Non-existent item in patch 7.40c"
+    item_hermes_sandals:
+      reason: "Non-existent item in patch 7.40c"
+    item_specialists_array:
+      reason: "Non-existent item in patch 7.40c"
+    item_lunar_crest:
+      reason: "Non-existent item in patch 7.40c"
+    item_witches_switch:
+      reason: "Non-existent item in patch 7.40c"
+    item_super_blink:
+      reason: "Special internal item - not purchasable"
+    item_pocket_tower:
+      reason: "Special internal item - not purchasable"
+    item_miniboss_minion_summoner:
+      reason: "Special internal item - not purchasable"

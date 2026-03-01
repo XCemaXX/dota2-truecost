@@ -1,0 +1,444 @@
+"""
+Publish output files to docs/ folder for multi-version support.
+
+Steps:
+1. Read patch version from axiom_rules.yaml
+2. Create docs/patch_{version}/ directory
+3. Copy HTML files from output/ with nav patching (patch selector + comparison link)
+4. Generate data.js from effective_costs.json
+5. Generate docs/patches.js (shared by all pages)
+6. Generate docs/index.html (redirect to latest chart)
+7. Generate docs/comparison.html
+"""
+
+import json
+import logging
+import sys
+from pathlib import Path
+from typing import Any
+
+sys.dont_write_bytecode = True
+
+logger = logging.getLogger(__name__)
+
+from axioms.loader import load_axiom_rules
+from common.shared_styles import SHARED_CSS
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+OUTPUT_PATH = PROJECT_ROOT / "output"
+DOCS_PATH = PROJECT_ROOT / "docs"
+
+# Files to copy from output/ to docs/patch_{version}/
+PUBLISH_FILES = [
+    "axioms_table.html",
+    "items_table.html",
+    "interactive_chart.html",
+]
+
+# CSS added to pages with patch selector
+PATCH_SELECT_CSS = """
+.nav-right { margin-left: auto; display: flex; gap: 15px; align-items: center; }
+#patchSelect {
+    background: rgba(45, 52, 54, 0.8);
+    color: #5dade2;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+#patchSelect:hover { background: rgba(93, 173, 226, 0.2); }
+#patchSelect option { background: #2d3436; color: #eee; }
+"""
+
+# HTML injected into nav bar (right side)
+NAV_RIGHT_HTML = """<div class="nav-right"><select id="patchSelect"></select><a href="../comparison.html">Comparison</a></div>"""
+
+# JS injected before </body> to populate patch selector
+PATCH_SELECT_JS = """
+<script src="../patches.js"></script>
+<script>
+(function() {
+    var sel = document.getElementById('patchSelect');
+    if (!sel || typeof PATCHES_LIST === 'undefined') return;
+    var currentPatch = document.body.getAttribute('data-patch');
+    var page = location.pathname.split('/').pop() || 'interactive_chart.html';
+    for (var i = PATCHES_LIST.length - 1; i >= 0; i--) {
+        var opt = document.createElement('option');
+        opt.value = PATCHES_LIST[i];
+        opt.textContent = 'Patch ' + PATCHES_LIST[i];
+        if (PATCHES_LIST[i] === currentPatch) opt.selected = true;
+        sel.appendChild(opt);
+    }
+    sel.addEventListener('change', function() {
+        location.href = '../patch_' + this.value + '/' + page;
+    });
+})();
+</script>"""
+
+
+def patch_nav(html: str, patch: str) -> str:
+    """Inject patch selector dropdown and comparison link into nav bar."""
+    import re
+
+    # Insert nav-right before closing </div> of nav
+    html = re.sub(
+        r'(<div class="nav">)(.*?)(</div>)',
+        r"\1\2" + NAV_RIGHT_HTML + r"\3",
+        html,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+    # Add patch-select CSS to existing <style> block
+    html = html.replace("</style>", PATCH_SELECT_CSS + "</style>", 1)
+
+    # Add data-patch attribute to <body>
+    html = html.replace("<body>", f'<body data-patch="{patch}">', 1)
+
+    # Add patches.js and patch-select JS before </body>
+    html = html.replace("</body>", PATCH_SELECT_JS + "\n</body>", 1)
+
+    return html
+
+
+def generate_data_js(patch: str) -> str:
+    """Generate data.js content from effective_costs.json."""
+    costs_path = OUTPUT_PATH / "effective_costs.json"
+    with open(costs_path, "r", encoding="utf-8") as f:
+        costs = json.load(f)
+
+    items = []
+    for item in costs:
+        items.append(
+            {
+                "id": item["id"],
+                "name": item["name"],
+                "real_cost": item["real_cost"],
+                "effective_cost": item["effective_cost"],
+                "difference_pct": item["difference_pct"],
+            }
+        )
+
+    data = {
+        "patch": patch,
+        "items": items,
+    }
+
+    return f"// Patch {patch} effective costs data\nvar PATCH_DATA = {json.dumps(data, indent=2, ensure_ascii=False)};\n"
+
+
+def load_patches_data() -> dict[str, Any]:
+    """Load existing patches data or return default."""
+    patches_path = DOCS_PATH / "patches.json"
+    if patches_path.is_file():
+        with open(patches_path, "r", encoding="utf-8") as f:
+            result: dict[str, Any] = json.load(f)
+            return result
+    return {"latest": "", "patches": []}
+
+
+def save_patches_data(data: dict):
+    """Save patches.json and generate patches.js."""
+    # Save JSON (machine-readable)
+    patches_path = DOCS_PATH / "patches.json"
+    with open(patches_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    # Generate JS (loaded by all HTML pages via <script src>)
+    patches_js_path = DOCS_PATH / "patches.js"
+    patches_list = json.dumps(data["patches"])
+    latest = json.dumps(data["latest"])
+    with open(patches_js_path, "w", encoding="utf-8") as f:
+        f.write(f"// Auto-generated by 05_publish.py\n")
+        f.write(f"var PATCHES_LIST = {patches_list};\n")
+        f.write(f"var PATCHES_LATEST = {latest};\n")
+
+
+def generate_index_html() -> str:
+    """Generate index.html that redirects to latest patch chart."""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dota 2 Item Analysis</title>
+<script src="patches.js"></script>
+<script>
+location.replace('patch_' + PATCHES_LATEST + '/interactive_chart.html');
+</script>
+</head>
+<body style="background:#1a1a2e;color:#eee;font-family:sans-serif;padding:40px;">
+<p>Redirecting to latest patch...</p>
+</body>
+</html>"""
+
+
+def generate_comparison_html() -> str:
+    """Generate comparison.html with patch diff functionality."""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patch Comparison - Dota 2 Item Analysis</title>
+<style>
+{SHARED_CSS}
+.controls {{
+    display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 20px;
+}}
+.controls select {{
+    background: rgba(45, 52, 54, 0.8); color: #5dade2; border: 1px solid #555;
+    padding: 8px 12px; border-radius: 5px; font-size: 1em; cursor: pointer;
+}}
+.controls select:hover {{ background: rgba(93, 173, 226, 0.2); }}
+.controls button {{
+    background: #5dade2; color: #1a1a2e; border: none;
+    padding: 8px 20px; border-radius: 5px; cursor: pointer;
+    font-size: 1em; font-weight: bold;
+}}
+.controls button:hover {{ background: #3498db; }}
+.controls label {{ color: #aaa; }}
+#message {{ color: #f4d03f; margin: 20px 0; }}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Patch Comparison</h1>
+    <p class="subtitle">Compare effective costs between patches</p>
+    <div class="nav">
+        <a href="index.html">Chart</a>
+        <a href="comparison.html" class="active">Comparison</a>
+    </div>
+
+    <div id="content"></div>
+</div>
+
+<script src="patches.js"></script>
+<script>
+function init() {{
+    var el = document.getElementById('content');
+
+    if (typeof PATCHES_LIST === 'undefined' || PATCHES_LIST.length < 2) {{
+        el.innerHTML = '<p id="message">Comparison requires at least 2 published patches.</p>';
+        return;
+    }}
+
+    var optionsA = '', optionsB = '';
+    for (var i = PATCHES_LIST.length - 1; i >= 0; i--) {{
+        var selA = (i === PATCHES_LIST.length - 2) ? ' selected' : '';
+        var selB = (i === PATCHES_LIST.length - 1) ? ' selected' : '';
+        optionsA += '<option value="' + PATCHES_LIST[i] + '"' + selA + '>Patch ' + PATCHES_LIST[i] + '</option>';
+        optionsB += '<option value="' + PATCHES_LIST[i] + '"' + selB + '>Patch ' + PATCHES_LIST[i] + '</option>';
+    }}
+
+    el.innerHTML =
+        '<div class="controls">' +
+        '<label>Old:</label><select id="patchA">' + optionsA + '</select>' +
+        '<label>New:</label><select id="patchB">' + optionsB + '</select>' +
+        '<button onclick="compare()">Compare</button>' +
+        '</div>' +
+        '<div id="results"></div>';
+
+    compare();
+}}
+
+function loadPatchData(version) {{
+    return new Promise(function(resolve, reject) {{
+        var oldScript = document.getElementById('patchDataScript');
+        if (oldScript) oldScript.remove();
+
+        var script = document.createElement('script');
+        script.id = 'patchDataScript';
+        script.src = 'patch_' + version + '/data.js';
+        script.onload = function() {{
+            resolve(structuredClone(window.PATCH_DATA));
+        }};
+        script.onerror = function() {{
+            reject(new Error('Failed to load patch ' + version));
+        }};
+        document.head.appendChild(script);
+    }});
+}}
+
+async function compare() {{
+    var patchA = document.getElementById('patchA').value;
+    var patchB = document.getElementById('patchB').value;
+    var results = document.getElementById('results');
+
+    if (patchA === patchB) {{
+        results.innerHTML = '<p id="message">Select two different patches to compare.</p>';
+        return;
+    }}
+
+    results.innerHTML = '<p id="message">Loading...</p>';
+
+    try {{
+        var dataA = await loadPatchData(patchA);
+        var dataB = await loadPatchData(patchB);
+    }} catch (e) {{
+        results.innerHTML = '<p id="message">Error: ' + e.message + '</p>';
+        return;
+    }}
+
+    var mapA = {{}};
+    dataA.items.forEach(function(item) {{ mapA[item.id] = item; }});
+    var mapB = {{}};
+    dataB.items.forEach(function(item) {{ mapB[item.id] = item; }});
+
+    var allIds = new Set([...Object.keys(mapA), ...Object.keys(mapB)]);
+
+    var rows = [];
+    allIds.forEach(function(id) {{
+        var a = mapA[id];
+        var b = mapB[id];
+        var row = {{ id: id }};
+
+        if (a && b) {{
+            row.name = b.name;
+            row.effOld = a.effective_cost;
+            row.effNew = b.effective_cost;
+            row.realOld = a.real_cost;
+            row.realNew = b.real_cost;
+            row.changePct = b.effective_cost !== 0
+                ? ((b.effective_cost - a.effective_cost) / b.effective_cost) * 100
+                : 0;
+            row.status = 'both';
+        }} else if (b) {{
+            row.name = b.name;
+            row.effNew = b.effective_cost;
+            row.realNew = b.real_cost;
+            row.changePct = 0;
+            row.status = 'new';
+        }} else {{
+            row.name = a.name;
+            row.effOld = a.effective_cost;
+            row.realOld = a.real_cost;
+            row.changePct = 0;
+            row.status = 'removed';
+        }}
+
+        rows.push(row);
+    }});
+
+    rows.sort(function(a, b) {{ return Math.abs(b.changePct) - Math.abs(a.changePct); }});
+
+    var html = '<div class="table-container"><table>';
+    html += '<thead><tr>' +
+        '<th>Item</th>' +
+        '<th>Change %</th>' +
+        '<th>Eff. Cost (' + patchA + ')</th>' +
+        '<th>Eff. Cost (' + patchB + ')</th>' +
+        '<th>Real Cost (' + patchA + ')</th>' +
+        '<th>Real Cost (' + patchB + ')</th>' +
+        '</tr></thead><tbody>';
+
+    rows.forEach(function(row) {{
+        var changeStr, changeClass;
+        if (row.status === 'new') {{
+            changeStr = 'NEW';
+            changeClass = 'text-blue';
+        }} else if (row.status === 'removed') {{
+            changeStr = 'REMOVED';
+            changeClass = 'text-muted';
+        }} else {{
+            changeStr = (row.changePct >= 0 ? '+' : '') + row.changePct.toFixed(1) + '%';
+            changeClass = row.changePct > 0 ? 'text-green' : (row.changePct < 0 ? 'text-red' : '');
+        }}
+
+        html += '<tr>';
+        html += '<td>' + row.name + '</td>';
+        html += '<td class="' + changeClass + '">' + changeStr + '</td>';
+        html += '<td>' + (row.effOld != null ? row.effOld.toFixed(1) : '-') + '</td>';
+        html += '<td>' + (row.effNew != null ? row.effNew.toFixed(1) : '-') + '</td>';
+        html += '<td>' + (row.realOld != null ? row.realOld : '-') + '</td>';
+        html += '<td>' + (row.realNew != null ? row.realNew : '-') + '</td>';
+        html += '</tr>';
+    }});
+
+    html += '</tbody></table></div>';
+
+    var changed = rows.filter(function(r) {{ return r.status === 'both' && Math.abs(r.changePct) > 0.05; }}).length;
+    var added = rows.filter(function(r) {{ return r.status === 'new'; }}).length;
+    var removed = rows.filter(function(r) {{ return r.status === 'removed'; }}).length;
+
+    var summary = '<div class="stats-row">';
+    summary += '<div class="stat-card"><div class="stat-value">' + rows.length + '</div><div class="stat-label">Total Items</div></div>';
+    summary += '<div class="stat-card"><div class="stat-value">' + changed + '</div><div class="stat-label">Changed</div></div>';
+    if (added > 0) summary += '<div class="stat-card"><div class="stat-value">' + added + '</div><div class="stat-label">New</div></div>';
+    if (removed > 0) summary += '<div class="stat-card"><div class="stat-value">' + removed + '</div><div class="stat-label">Removed</div></div>';
+    summary += '</div>';
+
+    results.innerHTML = summary + html;
+}}
+
+init();
+</script>
+</body>
+</html>"""
+
+
+def main():
+    logger.info("=" * 70)
+    logger.info("PUBLISHING TO DOCS")
+    logger.info("=" * 70)
+
+    # Step 1: Read patch version
+    rules = load_axiom_rules()
+    patch = rules.patch
+    logger.info("\nPatch version: %s", patch)
+
+    # Step 2: Create directory
+    patch_dir = DOCS_PATH / f"patch_{patch}"
+    patch_dir.mkdir(parents=True, exist_ok=True)
+    logger.info("Output directory: docs/patch_%s/", patch)
+
+    # Step 3: Copy and patch HTML files
+    for filename in PUBLISH_FILES:
+        src = OUTPUT_PATH / filename
+        dst = patch_dir / filename
+        if not src.is_file():
+            logger.warning("  WARNING: %s not found in output/, skipping", filename)
+            continue
+        with open(src, "r", encoding="utf-8") as f:
+            html = f.read()
+        html = patch_nav(html, patch)
+        with open(dst, "w", encoding="utf-8") as f:
+            f.write(html)
+        logger.info("  Copied: %s", filename)
+
+    # Step 4: Generate data.js
+    data_js = generate_data_js(patch)
+    data_js_path = patch_dir / "data.js"
+    with open(data_js_path, "w", encoding="utf-8") as f:
+        f.write(data_js)
+    logger.info("  Generated: data.js")
+
+    # Step 5: Update patches.json + patches.js
+    patches_data = load_patches_data()
+    if patch not in patches_data["patches"]:
+        patches_data["patches"].append(patch)
+    patches_data["latest"] = patch
+    save_patches_data(patches_data)
+    logger.info("  Updated: patches.js (patches: %s)", patches_data["patches"])
+
+    # Step 6: Generate index.html (redirect to latest)
+    index_html = generate_index_html()
+    index_path = DOCS_PATH / "index.html"
+    with open(index_path, "w", encoding="utf-8") as f:
+        f.write(index_html)
+    logger.info("  Generated: index.html (redirect to patch_%s/interactive_chart.html)", patch)
+
+    # Step 7: Generate comparison.html
+    comparison_html = generate_comparison_html()
+    comparison_path = DOCS_PATH / "comparison.html"
+    with open(comparison_path, "w", encoding="utf-8") as f:
+        f.write(comparison_html)
+    logger.info("  Generated: comparison.html")
+
+    logger.info("\nDone! Published patch %s to docs/", patch)
+    logger.info("View: cd docs && python -m http.server 8080")
+
+
+if __name__ == "__main__":
+    main()

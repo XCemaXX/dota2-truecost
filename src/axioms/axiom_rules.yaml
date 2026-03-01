@@ -1,0 +1,3397 @@
+# Axiom Rules - Single Source of Truth for Item Valuation
+
+version: "1.0"
+patch: "7.40c"
+
+# Settings — named constants for pipeline and formulas
+settings:
+  # Pipeline
+  max_resolution_iterations: 10
+
+  # Gameplay coefficients
+  cooldown_efficiency: 0.75  # Multiplier for CD-based abilities (0.75 = realistic usage)
+  aura_avg_targets: 1.5  # Average heroes affected by aura
+  armor_damage_factor: 0.06  # Dota 2 armor constant: each armor reduces phys dmg by ~6%
+
+  # Expected hero values (for formulas and amplification calculations)
+  expected_hp_regen: 10        # STR hero base at Sange timing (~8-12 HP/sec total)
+  expected_mana_regen: 4       # INT hero at Kaya purchase (~4-5 mana/sec total)
+  expected_attack_damage: 200   # Carry hero total damage at crit item timing (~level 15-20)
+  expected_mana_pool: 780       # INT hero base mana at Null Talisman timing (~level 7)
+  expected_move_speed: 365      # Base hero MS (~315) + boots (~50)
+  expected_physical_damage: 150  # Average physical attack damage in midgame
+  expected_missing_hp: 900       # STR hero at Heart timing: ~3000 HP, ~30% missing avg
+  expected_enemy_hp: 3000         # Average enemy hero HP for %HP drain calculations
+  permanent_dmg_uptime_during_whole_game: 0.20  # % of game time persistent damage hits enemies
+
+  # CC disable: gold per "normalized second" of disable.
+  # Items compute cc_stat = duration / sqrt(cooldown), axiom prices it.
+  # Formula: cc_value = (duration / sqrt(CD)) × base_disable_gold × type_coeff
+  base_disable_gold: 2000
+
+# =============================================================================
+# AXIOMS - Main stat pricing definitions
+# =============================================================================
+#
+# Methods available:
+#   - reference_item: Calculate from item price / stat value
+#   - manual: Direct gold_per_point value with explanation
+#   - formula: Math expression referencing other axioms (or just "other_axiom" as reference)
+#   - amplification_of: Percentage amplification of another axiom
+#
+# Modifiers (for reference_item):
+#   - subtract_stats: Subtract other stats' cost first
+#   - uptime: Apply duration/(duration+cooldown) multiplier
+# =============================================================================
+
+axioms:
+  # -------------------------------------------------------------------------
+  # Base Axioms - Pure stat items (reference_item method)
+  # -------------------------------------------------------------------------
+
+  bonus_strength:
+    method: reference_item
+    reference_item: item_ogre_axe
+    stat: bonus_strength
+    display_name: "Strength"
+    category: attributes
+    comment: |
+      Mid-tier pure STR item. Consistent with AGI/INT pricing
+
+  bonus_agility:
+    method: reference_item
+    reference_item: item_blade_of_alacrity
+    stat: bonus_agility
+    display_name: "Agility"
+    category: attributes
+    comment: |
+      Mid-tier pure AGI item. Consistent with STR/INT pricing
+
+  bonus_intellect:
+    method: reference_item
+    reference_item: item_staff_of_wizardry
+    stat: bonus_intellect
+    display_name: "Intelligence"
+    category: attributes
+    comment: |
+      Mid-tier pure INT item. Consistent with STR/AGI pricing
+
+  bonus_all_stats:
+    method: formula
+    formula: "(bonus_strength + bonus_agility + bonus_intellect) / 3"
+    display_name: "All Stats"
+    category: attributes
+    comment: |
+      +1 all stats = +1 STR + +1 AGI + +1 INT. Average of three: (100+100+100)/3 = 100 g/pt
+
+  bonus_health:
+    method: reference_item
+    reference_item: item_vitality_booster
+    stat: bonus_health
+    display_name: "Health"
+    category: defense
+    comment: |
+      Mid-tier pure HP item. Builds into major HP items
+
+  bonus_mana:
+    method: reference_item
+    reference_item: item_energy_booster
+    stat: bonus_mana
+    display_name: "Mana"
+    category: sustain
+    comment: |
+      Cheapest pure mana pool item. Builds into Arcane Boots and major mana items
+
+  bonus_health_regen:
+    method: reference_item
+    reference_item: item_ring_of_regen
+    stat: bonus_health_regen
+    display_name: "HP Regen"
+    category: sustain
+    comment: |
+      Cheapest pure HP regen item. Basic component
+
+  bonus_mana_regen:
+    method: reference_item
+    reference_item: item_sobi_mask
+    stat: bonus_mana_regen
+    display_name: "MP Regen"
+    category: sustain
+    comment: |
+      Cheapest pure mana regen item. Basic component
+
+  bonus_damage:
+    method: reference_item
+    reference_item: item_blades_of_attack
+    stat: bonus_damage
+    display_name: "Damage"
+    category: offense
+    comment: |
+      Cheapest pure damage item. Basic component for damage builds
+
+  bonus_attack_speed:
+    method: reference_item
+    reference_item: item_gloves
+    stat: bonus_attack_speed
+    display_name: "Attack Speed"
+    category: offense
+    comment: |
+      Cheapest pure attack speed item. Basic component
+
+  bonus_armor:
+    method: reference_item
+    reference_item: item_chainmail
+    stat: bonus_armor
+    display_name: "Armor"
+    category: defense
+    comment: |
+      Mid-tier pure armor item. Ring of Protection too cheap to be representative
+
+  bonus_magic_resistance:
+    method: reference_item
+    reference_item: item_cloak
+    stat: bonus_magical_armor
+    display_name: "Magic Resistance"
+    category: defense
+    comment: |
+      Only pure magic resistance item. Basic component for Hood/Pipe builds
+
+  bonus_movement_speed:
+    method: reference_item
+    reference_item: item_boots
+    stat: bonus_movement_speed
+    display_name: "Movement Speed"
+    category: movement
+    comment: |
+      Basic movement item. Foundation for all boot upgrades
+
+  bonus_movement_speed_pct:
+    method: formula
+    formula: "bonus_movement_speed * expected_move_speed / 100"
+    display_name: "Movement Speed %"
+    category: movement
+    comment: "1% MS = 3.65 flat MS (base 315 + boots 50). Via flat MS axiom."
+
+  displacement:
+    method: reference_item
+    reference_item: item_blink
+    stat: blink_range
+    display_name: "Displacement"
+    category: movement
+    comment: "Blink Dagger: 2250g / 1200 units = 1.875 g/unit"
+
+  bonus_evasion:
+    method: reference_item
+    reference_item: item_talisman_of_evasion
+    stat: bonus_evasion
+    display_name: "Evasion"
+    category: defense
+    comment: |
+      Only pure evasion item. Component for Butterfly, counters physical attacks
+
+  bonus_lifesteal:
+    method: reference_item
+    reference_item: item_lifesteal
+    stat: lifesteal_percent
+    display_name: "Lifesteal"
+    category: sustain
+    comment: |
+      Only pure lifesteal item. Component for Satanic, Mask of Madness
+
+  # -------------------------------------------------------------------------
+  # Secondary Axioms - Complex/multi-component items
+  # -------------------------------------------------------------------------
+
+  cast_range_bonus:
+    method: reference_item
+    reference_item: item_aether_lens
+    stat: cast_range_bonus
+    subtract_stats: [bonus_mana, bonus_mana_regen]
+    display_name: "Cast Range"
+    category: utility
+    comment: |
+      Aether Lens 2275g: mana 300 (960g) + mana_regen 2.5 (625g). Remainder: 690g / 225 = 3.07 g/pt
+
+  bonus_movement_speed_percent:
+    method: reference_item
+    reference_item: item_boots
+    stat: bonus_movement_speed
+    display_name: "Movement Speed %"
+    category: mobility
+    comment: |
+      Boots of Speed is the foundational movement item. Converted from flat MS to percent using base MS
+
+  phase_movement_speed:
+    method: formula
+    formula: "bonus_movement_speed"
+    display_name: "Phase Movement Speed"
+    category: mobility
+    comment: |
+      Temporary MS bonus = bonus_movement_speed (11.11 g/pt). Uptime applied at item level via uptime_stats
+
+  phase_movement_speed_range:
+    method: formula
+    formula: "bonus_movement_speed"
+    display_name: "Phase Movement Speed (Ranged)"
+    category: mobility
+    comment: |
+      Same as phase_movement_speed but for ranged heroes. Uptime applied at item level
+
+  spell_lifesteal:
+    method: reference_item
+    reference_item: item_voodoo_mask
+    stat: spell_lifesteal
+    display_name: "Spell Lifesteal"
+    category: sustain
+    comment: |
+      Spell lifesteal is more expensive than regular lifesteal
+
+  mana_gain:
+    method: formula
+    formula: "(bonus_mana_regen - bonus_health_regen) / 2"
+    display_name: "Mana Gain (sacrifice)"
+    category: sustain
+    comment: "Mana regen value minus HP drain cost, halved for temp mana."
+
+  corruption_armor:
+    method: reference_item
+    reference_item: item_blight_stone
+    stat: corruption_armor
+    display_name: "Armor Reduction"
+    category: offense
+    comment: |
+      Negative stat: gold_per_point will be negative
+
+  feedback_mana_burn:
+    method: formula
+    formula: "bonus_damage"
+    display_name: "Mana Burn"
+    category: offense
+    comment: |
+      Mana burn = physical damage per hit + mana drain. Priced as bonus_damage (50 g/pt)
+
+  damage_reflection_pct:
+    method: formula
+    formula: "bonus_damage * expected_physical_damage / 100 / 2"
+    display_name: "Damage Reflection %"
+    category: defense
+    comment: |
+      1% reflected damage = expected_physical_damage/100 flat damage per hit received.
+      Halved (x0.5) because reflection only works when being attacked, not always.
+      150/100 * 50 / 2 = 37.5 g/pt per 1% reflection.
+
+  absorb_amount:
+    method: formula
+    formula: "bonus_health / 2"
+    display_name: "Absorb Amount"
+    category: defense
+    comment: "Physical-only barrier = HP value halved."
+
+  # CC disable pricing: gold per "normalized second" = duration / sqrt(cooldown).
+  # Type coefficients reflect disable strength (hex best, cyclone worst).
+  cc_hex:
+    method: formula
+    formula: "base_disable_gold * 1.0"
+    display_name: "Hex (per sqrt-sec)"
+    category: disable
+    comment: "Silence+mute+disarm+slow. Best item delivery (800 range instant)"
+
+  cc_stun:
+    method: formula
+    formula: "base_disable_gold * 1.0"
+    display_name: "Stun (per sqrt-sec)"
+    category: disable
+    comment: "Full lockdown but item stuns have poor delivery"
+
+  cc_silence:
+    method: formula
+    formula: "base_disable_gold * 0.6"
+    display_name: "Silence (per sqrt-sec)"
+    category: disable
+    comment: "Spell-only block, doesn't cancel TP"
+
+  cc_root:
+    method: formula
+    formula: "base_disable_gold * 0.5"
+    display_name: "Root (per sqrt-sec)"
+    category: disable
+    comment: "No movement + cancels TP, but can still cast/attack"
+
+  cc_disarm:
+    method: formula
+    formula: "base_disable_gold * 0.2"
+    display_name: "Disarm (per sqrt-sec)"
+    category: disable
+    comment: "Prevents attacks only — weakest disable type"
+
+  cc_immunity:
+    method: formula
+    formula: "base_disable_gold * 1.0"
+    display_name: "Spell Immunity (per sqrt-sec)"
+    category: disable
+    comment: "Blocks all targeted spells and CC — strongest defensive ability"
+
+  cc_reflect:
+    method: formula
+    formula: "base_disable_gold * 0.2"
+    display_name: "Spell Reflect (per sqrt-sec)"
+    category: disable
+    comment: "Reflects targeted spells back + dispel on cast — weaker than immunity"
+
+  cc_cyclone:
+    method: formula
+    formula: "base_disable_gold * 0.4"
+    display_name: "Cyclone (per sqrt-sec)"
+    category: disable
+    comment: "Full disable but target invulnerable — can't capitalize"
+
+  aura_mana_regen:
+    method: formula
+    formula: "bonus_mana_regen * aura_avg_targets"
+    display_name: "Mana Regen Aura"
+    category: aura
+    comment: |
+      Was ref Basilius (362.5 g/pt). Now formula: 250 × 1.5 = 375 g/pt
+
+  aura_health_regen:
+    method: formula
+    formula: "bonus_health_regen * aura_avg_targets"
+    display_name: "Health Regen Aura"
+    category: aura
+    comment: |
+      Was ref Headdress (177.5 g/pt). Now formula: 140 × 1.5 = 210 g/pt
+
+  bonus_aoe_armor:
+    method: formula
+    formula: "bonus_armor * aura_avg_targets"
+    display_name: "Armor Aura"
+    category: aura
+    comment: |
+      Was ref Buckler (143.75 g/pt). Now formula: 137.5 × 1.5 = 206.25 g/pt
+
+  bonus_cooldown:
+    method: reference_item
+    reference_item: item_octarine_core
+    stat: bonus_cooldown
+    display_name: "Cooldown Reduction"
+    category: utility
+    subtract_stats:
+      - bonus_health
+      - bonus_mana
+      - bonus_mana_regen
+    comment: |
+      Octarine 4900g - stats = remaining / 25%
+
+  # crit_chance and crit_multiplier REMOVED - compound mechanic
+  # Crit is valued via ability_value per item (expected DPS increase)
+  # See item_overrides for item_lesser_crit, item_greater_crit
+
+  bonus_chance_damage:
+    method: formula
+    formula: "bonus_damage"
+    chance_stat: bonus_chance
+    display_name: "Pierce Damage"
+    category: offense
+    comment: "Per-attack proc damage priced as attack damage. Chance applied separately."
+
+
+  # -------------------------------------------------------------------------
+  # Amplification Axioms
+  # -------------------------------------------------------------------------
+
+  hp_regen_amp:
+    method: amplification_of
+    base_axiom: bonus_health_regen
+    expected_base_key: expected_hp_regen
+    display_name: "HP Regen Amplification"
+    category: amplification
+    comment: |
+      Amplifies HP regen. Expected base from expected_bases section
+
+  mana_regen_multiplier:
+    method: amplification_of
+    base_axiom: bonus_mana_regen
+    expected_base_key: expected_mana_regen
+    display_name: "Mana Regen Multiplier"
+    category: amplification
+    comment: |
+      Amplifies mana regen. Expected base from expected_bases section
+
+  crit_expected_dps:
+    method: amplification_of
+    base_axiom: bonus_damage
+    expected_base_key: expected_attack_damage
+    display_name: "Crit Expected DPS"
+    category: amplification
+    comment: |
+      Expected DPS increase from crit. 1% DPS = 50 × 200 × 0.01 = 100g.
+      Used with custom_stats formula: crit_chance/100 * (crit_multiplier - 100).
+
+  missing_health_regen:
+    method: amplification_of
+    base_axiom: bonus_health_regen
+    expected_base_key: expected_missing_hp
+    display_name: "Missing HP Regen"
+    category: amplification
+    comment: |
+      1% missing HP regen = 0.01 × 900 missing HP × 140g = 1260g.
+      Expected 900 missing HP = 30% of 3000 HP STR hero at Heart timing.
+
+  # -------------------------------------------------------------------------
+  # Manual Axioms - Direct values with explanations
+  # -------------------------------------------------------------------------
+
+  bonus_gold:
+    method: formula
+    formula: "1500 / 90"
+    display_name: "Bonus Gold"
+    category: offense
+    comment: "1500s avg game / 90s AbilityChargeRestoreTime = 16.67 uses per game."
+
+  replenish_amount:
+    method: formula
+    formula: "aura_mana_regen"
+    display_name: "Mana Replenish"
+    category: aura
+    comment: |
+      Priced as aura_mana_regen (team mana restore). Use with uptime_stats + cooldown
+
+  block_damage_melee:
+    method: formula
+    formula: "bonus_armor / expected_physical_damage / armor_damage_factor"
+    display_name: "Block Damage (Melee)"
+    category: defense
+    comment: "1 block = 1/9 armor equiv (150 avg dmg, 6% per armor). Chance applied separately."
+
+  block_damage_ranged:
+    method: formula
+    formula: "bonus_armor / expected_physical_damage / armor_damage_factor"
+    display_name: "Block Damage (Ranged)"
+    category: defense
+    comment: "Same as melee — pipeline applies melee/ranged switchable separately."
+
+  aura_attack_speed:
+    method: formula
+    formula: "bonus_attack_speed * aura_avg_targets"
+    display_name: "Attack Speed Aura"
+    category: aura
+    comment: |
+      Attack speed aura affects multiple heroes, like other auras
+
+  aura_negative_attack_speed:
+    method: formula
+    formula: "aura_attack_speed * -1"
+    display_name: "Negative Attack Speed Aura"
+    category: aura
+    comment: |
+      Mirror of positive AS aura. Negative g/pt because stat value is negative (-45 on Shiva's).
+      -45 * -33.75 = +1518.75g (debuff on enemies = benefit)
+
+  aura_positive_armor:
+    method: formula
+    formula: "bonus_aoe_armor"
+    display_name: "Positive Armor Aura"
+    category: aura
+    comment: |
+      Same effect as bonus_aoe_armor (Buckler aura). Different stat name in Assault Cuirass.
+
+  aura_negative_armor:
+    method: formula
+    formula: "aura_positive_armor * -1"
+    display_name: "Negative Armor Aura"
+    category: aura
+    comment: |
+      Mirror of positive armor aura. Negative gold_per_point because stat value is negative (-5 on Assault)
+
+  penalty_armor:
+    method: formula
+    formula: "bonus_armor * -1"
+    display_name: "Armor Penalty"
+    category: defense
+    comment: |
+      For stats stored as positive values but representing armor loss (MoM berserk_armor_reduction).
+
+  penalty_health_regen:
+    method: formula
+    formula: "bonus_health_regen * -1"
+    display_name: "HP Regen Penalty"
+    category: sustain
+    comment: |
+      For stats stored as positive values but representing HP drain (Armlet unholy_health_drain).
+
+  lifesteal_aura:
+    method: formula
+    formula: "bonus_lifesteal * aura_avg_targets"
+    display_name: "Lifesteal Aura"
+    category: aura
+    comment: |
+      Vladmir: lifesteal aura 20%, ~50g x 2 (aura)
+
+  damage_aura:
+    method: formula
+    formula: "bonus_damage * expected_attack_damage / 100 * aura_avg_targets"
+    display_name: "Damage Aura"
+    category: aura
+    comment: |
+      Percentage-based aura: 1% damage = expected_attack_damage/100 flat damage per target.
+      18% x 200/100 x 1.5 targets x 50 g/pt = 150 g/pt
+
+  slow_resistance:
+    method: reference_item
+    reference_item: item_sange
+    stat: slow_resistance
+    subtract_stats:
+      - bonus_strength
+      - hp_regen_amp
+    display_name: "Slow Resistance"
+    category: defense
+    comment: |
+      Sange 2100g: 16 STR + 16% hp_regen_amp + 20% slow resist. Remainder / 20
+
+  spell_amp:
+    method: reference_item
+    reference_item: item_kaya
+    stat: spell_amp
+    subtract_stats:
+      - bonus_intellect
+      - mana_regen_multiplier
+    display_name: "Spell Amplification"
+    category: offense
+    comment: |
+      Kaya 2100g: 16 INT + 40% mana_regen_mult + 10% spell amp. Remainder / 10
+
+  # bash_chance_melee, bash_chance_ranged, bash_duration REMOVED
+  # Bash chance is a modifier, not independently valued
+  # Bash damage uses bonus_chance_damage with manual_uptime override
+  # Bash duration valued via uptime_stats manual_uptime on items
+
+  # chain_chance REMOVED - now used as modifier via chance_stat on chain_damage
+
+  chain_damage:
+    method: reference_item
+    reference_item: item_maelstrom
+    stat: chain_damage
+    chance_stat: chain_chance
+    subtract_stats:
+      - bonus_damage
+      - bonus_attack_speed
+    display_name: "Chain Lightning Damage"
+    category: offense
+    comment: |
+      Maelstrom minus damage/AS, divided by 110 dmg and 25% chance
+
+  bonus_movement_speed_melee:
+    method: formula
+    formula: "bonus_movement_speed * 1.0"
+    display_name: "Movement Speed (Melee)"
+    category: movement
+    comment: |
+      Same value as generic move speed. Used for melee/ranged split items.
+
+  bonus_movement_speed_ranged:
+    method: formula
+    formula: "bonus_movement_speed * 1.0"
+    display_name: "Movement Speed (Ranged)"
+    category: movement
+    comment: |
+      Same value as generic move speed. Used for melee/ranged split items.
+
+  bonus_damage_melee:
+    method: formula
+    formula: "bonus_damage * 1.0"
+    display_name: "Damage (Melee)"
+    category: offense
+    comment: |
+      Same value as generic damage. Used for melee/ranged split items.
+
+  bonus_damage_range:
+    method: formula
+    formula: "bonus_damage * 1.0"
+    display_name: "Damage (Ranged)"
+    category: offense
+    comment: |
+      Same value as generic damage. Used for melee/ranged split items.
+
+  bonus_spell_damage:
+    method: formula
+    formula: "bonus_health"
+    display_name: "Spell Damage"
+    category: offense
+    comment: |
+      Flat magic damage proc. 1 damage = 1 HP removed = 4 g/pt (same as bonus_health axiom).
+      Used with uptime_stats for cooldown-based procs (Angel's Demise 250 dmg / 9s CD).
+
+  restore_per_charge:
+    method: formula
+    formula: "bonus_health_regen + bonus_mana_regen"
+    display_name: "Restore per Charge"
+    category: sustain
+    comment: |
+      Restores HP and mana equally per charge. Value = HP regen + mana regen axioms.
+
+  heal_reduction:
+    method: formula
+    formula: "hp_regen_amp"
+    display_name: "Heal Reduction"
+    category: offense
+    comment: |
+      Lower bound: 1% heal reduction >= 1% HP regen amp (14g).
+      Actual value higher since heal reduction also affects lifesteal, salves, etc.
+
+  bonus_night_vision:
+    method: reference_item
+    reference_item: item_moon_shard
+    stat: bonus_night_vision
+    subtract_stats:
+      - bonus_attack_speed
+    display_name: "Night Vision"
+    category: special
+    comment: |
+      Moon Shard 4000g: 140 AS + 400 night vision. Remainder / 400
+
+  bonus_stat:
+    method: formula
+    formula: "bonus_strength"
+    display_name: "Switchable Attribute"
+    category: special
+    comment: |
+      Switchable attribute (STR/AGI/INT) = 100g, not all_stats! (Power Treads)
+
+  int_damage:
+    method: formula
+    formula: "bonus_damage"
+    display_name: "Intelligence Damage"
+    category: offense
+    comment: |
+      Intelligence-based damage. Valued same as regular attack damage
+
+  bonus_attack_speed_pct:
+    method: formula
+    formula: "bonus_attack_speed"
+    display_name: "Attack Speed Percent"
+    category: offense
+    comment: |
+      Percentage AS, counted same as regular
+
+  movespeed_slow:
+    method: formula
+    formula: "-1 * bonus_movement_speed_percent"
+    display_name: "Movement Slow"
+    category: offense
+    comment: |
+      Slowing enemy = speeding self. Valve stores as negative, invert sign.
+
+  cold_attack_slow_melee:
+    method: formula
+    formula: "-1 * bonus_attack_speed"
+    display_name: "Cold AS Slow (Melee)"
+    category: offense
+    comment: |
+      Skadi melee AS slow. Negative in data, inverted formula.
+
+  cold_attack_slow_ranged:
+    method: formula
+    formula: "-1 * bonus_attack_speed"
+    display_name: "Cold AS Slow (Ranged)"
+    category: offense
+    comment: |
+      Skadi ranged AS slow. Negative in data, inverted formula.
+
+  bonus_damage_base:
+    method: formula
+    formula: "bonus_damage"
+    display_name: "Base Damage"
+    category: offense
+    comment: |
+      Rapier base damage. ALWAYS active, regardless of mode.
+
+  bonus_max_mana_percentage:
+    method: amplification_of
+    base_axiom: bonus_mana
+    expected_base_key: expected_mana_pool
+    display_name: "Max Mana %"
+    category: amplification
+    comment: |
+      Percentage increase to max mana pool. 3.2 × 780 × 0.01 = 24.96g per 1%.
+
+  manacost_reduction:
+    method: formula
+    formula: "bonus_max_mana_percentage"
+    display_name: "Mana Cost Reduction"
+    category: utility
+    comment: |
+      1% mana cost reduction ≈ 1% more effective mana pool (24.96 g/pt).
+
+
+  # -------------------------------------------------------------------------
+  # Formula-based Axioms
+  # -------------------------------------------------------------------------
+
+  heal_amplification:
+    method: formula
+    formula: "hp_regen_amp * 2"
+    display_name: "Heal Amplification"
+    category: derived
+    comment: |
+      ASSUMPTION: heal amp = 2x HP regen amp
+
+  lifesteal_amplification:
+    method: formula
+    formula: "hp_regen_amp * 1.75"
+    display_name: "Lifesteal Amplification"
+    category: derived
+    comment: |
+      ASSUMPTION: from Sange ratio
+
+  magic_resistance_aura:
+    method: formula
+    formula: "bonus_magic_resistance * aura_avg_targets"
+    display_name: "Magic Resistance Aura"
+    category: derived
+    comment: |
+      Aura magic resist = 2x personal (self + allies)
+
+  aura_movement_speed:
+    method: formula
+    formula: "bonus_movement_speed * aura_avg_targets"
+    display_name: "Movement Speed Aura"
+    category: derived
+    comment: |
+      Aura MS = 2x personal (Drum of Endurance)
+
+  aura_movement_speed_pct:
+    method: formula
+    formula: "bonus_movement_speed_pct * aura_avg_targets"
+    display_name: "Movement Speed % Aura"
+    category: derived
+    comment: "Aura % MS = 2x personal. For team active buffs (Drums, BoB)."
+
+  # -------------------------------------------------------------------------
+  # Anti-Heal / Restoration Reduction
+  # -------------------------------------------------------------------------
+
+  restoration_reduction_aura:
+    method: formula
+    formula: "bonus_health_regen * expected_hp_regen / 100 * aura_avg_targets"
+    display_name: "Heal Reduction Aura %"
+    category: aura
+    comment: |
+      1% heal reduction on enemies = expected_hp_regen/100 × hp_regen g/pt × targets.
+      25% on Shiva's: 25 × 10/100 × 140 × 1.5 = 525g (21 g/1%)
+
+  restoration_reduction_enemy:
+    method: formula
+    formula: "bonus_health_regen * expected_hp_regen / 100"
+    display_name: "Heal Reduction (single target) %"
+    category: offense
+    comment: |
+      Single-target heal reduction. No aura multiplier.
+      1% = 140 × 10 / 100 = 14 g/pt. Spirit Vessel 70%: uptime applied separately.
+
+  # -------------------------------------------------------------------------
+  # Illusion DPS
+  # -------------------------------------------------------------------------
+
+  illusion_dps:
+    method: formula
+    formula: "bonus_damage"
+    display_name: "Illusion DPS (dmg equiv)"
+    category: offense
+    comment: |
+      Illusion damage as effective bonus damage. 50 g/pt.
+      Custom_stat computes: %dmg × count × uptime / survivability × expected_dmg.
+
+  # -------------------------------------------------------------------------
+  # AoE Burst Damage (custom_stat aliases)
+  # -------------------------------------------------------------------------
+
+  blast_aoe_damage:
+    method: formula
+    formula: "bonus_health"
+    display_name: "AoE Burst Damage"
+    category: offense
+    comment: "AoE magic burst. Same g/pt as HP (4g). AoE multiplied in custom_stat."
+
+  damage_per_second:
+    method: formula
+    formula: "bonus_damage * aura_avg_targets * permanent_dmg_uptime_during_whole_game"
+    display_name: "Damage Per Second"
+    category: offense
+    comment: "Persistent AoE DPS. 50 g/pt × 1.5 targets × 0.20 uptime = 15 g/pt."
+
+  blast_slow_value:
+    method: formula
+    formula: "bonus_movement_speed"
+    display_name: "AoE Slow (MS equiv)"
+    category: offense
+    comment: "AoE slow converted to MS equivalent. Uptime + targets in custom_stat."
+
+  # -------------------------------------------------------------------------
+  # Alias Axioms
+  # -------------------------------------------------------------------------
+
+  damage:
+    method: formula
+    formula: "bonus_health"
+    display_name: "Magic/Ability Damage"
+    category: offense
+    comment: |
+      Magic/ability burst damage. 1 damage = 1 HP removed, same gold value
+
+# =============================================================================
+# ITEM OVERRIDES - Per-item special rules
+# =============================================================================
+# For items with unique mechanics that don't fit standard axiom evaluation.
+#
+# Supported fields:
+#   - ability_value: Gold value for the item's active ability
+#   - custom_stats: Manual stat values for unique mechanics
+#   - ignored_stats: Stats to ignore for this specific item
+#   - switchable_stats: Stats with multipliers for toggle modes
+#   - excluded: true to exclude item entirely
+#   - comment: Explanation of the override
+
+item_overrides:
+  item_eagle:
+    display_name: "Eaglesong"
+
+  item_relic:
+    display_name: "Sacred Relic"
+
+  item_infused_raindrop:
+    display_name: "Infused Raindrops"
+    ignored_stats:
+      magic_damage_block: { reason: "Consumable passive — 6 charges, not permanent" }
+      min_damage: { reason: "Threshold for block trigger" }
+      initial_charges: { reason: "Starting charge count" }
+
+  item_lifesteal:
+    display_name: "Morbid Mask"
+
+  item_gem:
+    ability_not_evaluated: true
+    comment: "True Sight aura not valued — unique detection utility has no stat equivalent"
+    display_name: "Gem of True Sight"
+    ignored_stats:
+      active_radius: { reason: "Radius when ability is activated" }
+
+  item_pers:
+    display_name: "Perseverance"
+
+  item_branches:
+    display_name: "Iron Branch"
+    ignored_stats:
+      tree_duration: { reason: "Iron Branch tree duration" }
+
+  item_gauntlets:
+    display_name: "Gauntlets of Strength"
+
+  item_slippers:
+    display_name: "Slippers of Agility"
+
+  item_mantle:
+    display_name: "Mantle of Intelligence"
+
+  item_sobi_mask:
+    display_name: "Sage's Mask"
+
+  item_blight_stone:
+    display_name: "Orb of Blight"
+    ignored_stats:
+      corruption_duration: { reason: "Armor corruption debuff duration" }
+
+  item_boots_of_elves:
+    display_name: "Band of Elvenskin"
+
+  item_robe:
+    display_name: "Robe of the Magi"
+
+  item_gloves:
+    display_name: "Gloves of Haste"
+
+  item_boots:
+    display_name: "Boots of Speed"
+
+  item_cloak:
+    ignored_stats:
+      tooltip_resist: { reason: "Resistance tooltip display value" }
+
+  item_blink:
+    display_name: "Blink Dagger"
+    comment: "Pure displacement item. Reference for displacement axiom (1.875 g/unit)."
+    abilities:
+      - name: "Blink"
+        type: active
+        stats:
+          - blink_range
+    ignored_stats:
+      blink_damage_cooldown:
+        reason: "Ability parameter"
+      blink_range_clamp:
+        reason: "Ability parameter"
+
+  item_overwhelming_blink:
+    comment: "STR-scaling DoT (100% STR over 6s) not valued — hero-dependent."
+    ability_not_evaluated: true
+    uptime_stats:
+      movement_slow:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Blink active: 50% slow for 6s / 15s CD"
+      attack_slow:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Blink active: 50 AS slow for 6s / 15s CD"
+      damage_base:
+        cooldown_stat: AbilityCooldown
+        reason: "Blink active: 100 instant damage / 15s CD"
+    ignored_stats:
+      damage_pct_instant: { reason: "STR-scaling instant damage — hero-dependent" }
+      damage_pct_over_time: { reason: "STR-scaling DoT — hero-dependent" }
+    abilities:
+      - name: "Overwhelming Blink"
+        type: active
+        stats:
+          - blink_damage_cooldown
+          - blink_range
+          - blink_range_clamp
+          - attack_slow
+          - damage_base
+          - damage_pct_instant
+          - damage_pct_over_time
+          - duration
+          - movement_slow
+          - radius
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_strength
+
+  item_swift_blink:
+    comment: "Displacement via axiom. Phased movement not valued."
+    uptime_stats:
+      bonus_agi_active:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Blink active: +35 AGI for 6s / 15s CD"
+      bonus_movement:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Blink active: +40 MS (decaying) for 6s / 15s CD"
+    abilities:
+      - name: "Swift Blink"
+        type: active
+        stats:
+          - blink_damage_cooldown
+          - blink_range
+          - blink_range_clamp
+          - bonus_agi_active
+          - bonus_movement
+          - duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_agility
+
+  item_arcane_blink:
+    comment: "Displacement via axiom. Arcane has 1400 range (vs 1200 base)."
+    uptime_stats:
+      heal_amount:
+        cooldown_stat: AbilityCooldown
+        stat_as: bonus_health_regen
+        reason: "Blink active: 250 HP self-restore / 9s CD. Priced as personal HP regen"
+      mana_amount:
+        cooldown_stat: AbilityCooldown
+        stat_as: bonus_mana_regen
+        reason: "Blink active: 100 mana self-restore / 9s CD. Priced as personal mana regen"
+    ignored_stats:
+      debuff_amp: { reason: "Debuff amplification percentage" }
+    abilities:
+      - name: "Arcane Blink"
+        type: active
+        stats:
+          - blink_damage_cooldown
+          - blink_range
+          - blink_range_clamp
+          - debuff_amp
+          - duration
+          - heal_amount
+          - mana_amount
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_intellect
+
+  item_rapier:
+    display_name: "Divine Rapier"
+    switchable_stats:
+      bonus_damage:
+        multiplier: 0.5
+        reason: "Physical mode - only one mode active at a time"
+      bonus_spell_amp:
+        multiplier: 0.5
+        reason: "Spell mode - only one mode active at a time"
+    comment: "Divine Rapier has two modes that don't stack."
+    abilities:
+      - name: "Transmute"
+        type: active
+        stats:
+          - bonus_spell_amp
+      - name: "Everlasting"
+        type: passive
+        stats: []
+
+  item_basher:
+    display_name: "Skull Basher"
+    custom_stats:
+      cc_stun:
+        formula: "bash_duration * (bash_chance_melee + bash_chance_ranged) / 2 / 100"
+        comment: "Bash stun 1.2s × avg chance 17.5%"
+    uptime_stats:
+      bonus_chance_damage:
+        manual_uptime: 0.175
+        reason: "Bash proc damage × averaged bash chance (25% melee × 0.5 + 10% ranged × 0.5)"
+    ignored_stats:
+      bash_chance_melee: { reason: "Bash chance (used in cc_stun formula)" }
+      bash_chance_ranged: { reason: "Bash chance (used in cc_stun formula)" }
+      bash_cooldown: { reason: "Bash proc internal cooldown" }
+      bash_duration: { reason: "Bash stun duration (used in cc_stun formula)" }
+    abilities:
+      - name: "Bash"
+        type: passive
+        stats:
+          - bash_chance_melee
+          - bash_chance_ranged
+          - bash_duration
+          - bonus_chance_damage
+          - cc_stun
+
+  item_abyssal_blade:
+    custom_stats:
+      cc_stun:
+        formula: "stun_duration / sqrt(AbilityCooldown) + bash_duration * (bash_chance_melee + bash_chance_ranged) / 2 / 100"
+        comment: "Overwhelm 1.6s/35s CD + Bash 1.2s × 17.5% chance"
+    uptime_stats:
+      bonus_chance_damage:
+        manual_uptime: 0.175
+        reason: "Bash proc damage × averaged bash chance (25% melee × 0.5 + 10% ranged × 0.5)"
+    ignored_stats:
+      bash_chance_melee: { reason: "Bash chance (used in cc_stun formula)" }
+      bash_chance_ranged: { reason: "Bash chance (used in cc_stun formula)" }
+      bash_cooldown: { reason: "Bash proc internal cooldown" }
+      bash_duration: { reason: "Bash stun duration (used in cc_stun formula)" }
+      stun_duration: { reason: "Overwhelm stun duration (used in cc_stun formula)" }
+    abilities:
+      - name: "Overwhelm"
+        type: active
+        stats:
+          - stun_duration
+          - cc_stun
+      - name: "Bash"
+        type: passive
+        stats:
+          - bash_chance_melee
+          - bash_chance_ranged
+          - bash_cooldown
+          - bash_duration
+          - bonus_chance_damage
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_strength
+          - hp_regen_amp
+          - slow_resistance
+
+  item_vanguard:
+    switchable_stats:
+      block_damage_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      block_damage_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Block damage differs by hero attack type. Using 50% average."
+    abilities:
+      - name: "Damage Block"
+        type: passive
+        stats:
+          - block_damage_melee
+          - block_damage_ranged
+
+  item_crimson_guard:
+    switchable_stats:
+      block_damage_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      block_damage_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Passive block 50% melee/ranged avg. Guard AoE block valued w/ uptime."
+    custom_stats:
+      guard_block:
+        formula: "(block_damage_active + max_hp_pct / 100 * expected_enemy_hp) * aura_avg_targets * duration / AbilityCooldown"
+        axiom: block_damage_melee
+        reason: "Guard: (70 + 2.2%×3000HP) × 1.5 AoE × 7s/40s CD"
+    ignored_stats:
+      block_chance_active: { reason: "Guard active 100% chance (no discount needed)" }
+      block_damage_active: { reason: "Consumed by guard_block formula" }
+      bonus_aoe_radius: { reason: "Buckler/Crimson Guard aura radius" }
+      max_hp_pct: { reason: "Consumed by guard_block formula" }
+      tooltip_reapply_time: { reason: "Crimson Guard reapply time tooltip" }
+    abilities:
+      - name: "Guard"
+        type: active
+        stats:
+          - block_damage_active
+          - block_chance_active
+      - name: "Damage Block"
+        type: passive
+        stats:
+          - block_damage_melee
+          - block_damage_ranged
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_health
+          - bonus_health_regen
+          - bonus_armor
+
+  item_orb_of_corrosion:
+    switchable_stats:
+      slow_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      slow_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Slow amount differs by hero attack type. Using 50% average."
+    abilities:
+      - name: "Corrosion"
+        type: passive
+        stats:
+          - corruption_armor
+          - slow_melee
+          - slow_ranged
+          - heal_reduction
+          - duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_agility
+
+  item_orb_of_frost:
+    switchable_stats:
+      slow_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      slow_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Slow amount differs by hero attack type. Using 50% average."
+    abilities:
+      - name: "Frost"
+        type: passive
+        stats:
+          - slow_melee
+          - slow_ranged
+          - heal_reduction
+
+  item_heavens_halberd:
+    display_name: "Heaven's Halberd"
+    custom_stats:
+      cc_disarm:
+        formula: "disarm_melee / sqrt(AbilityCooldown)"
+        comment: "Disarm 3s / 20s CD"
+    switchable_stats:
+      block_damage_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      block_damage_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Block damage differs by hero attack type. Using 50% average."
+    ignored_stats:
+      disarm_melee: { reason: "Disarm duration (used in cc_disarm formula)" }
+      disarm_range: { reason: "Ranged hero disarm duration (same as melee in 7.40c)" }
+    abilities:
+      - name: "Disarm"
+        type: active
+        stats:
+          - disarm_melee
+          - disarm_range
+          - cc_disarm
+      - name: "Damage Block"
+        type: passive
+        stats:
+          - block_damage_melee
+          - block_damage_ranged
+
+  item_power_treads:
+    switchable_stats:
+      bonus_movement_speed_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      bonus_movement_speed_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Movement speed differs by hero attack type (55 melee / 45 ranged). Using 50% average."
+    abilities:
+      - name: "Switch Attribute"
+        type: active
+        stats:
+          - bonus_stat
+
+  item_phase_boots:
+    switchable_stats:
+      bonus_damage_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      bonus_damage_range:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Damage bonus differs by hero attack type (18 melee / 12 ranged). Using 50% average."
+    uptime_stats:
+      phase_movement_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: phase_duration
+        reason: "Phase active: +20 MS for 3s / 8s CD = 37.5% uptime"
+      phase_movement_speed_range:
+        cooldown_stat: AbilityCooldown
+        duration_stat: phase_duration
+        reason: "Phase active (ranged): +10 MS for 3s / 8s CD = 37.5% uptime"
+    ignored_stats:
+      damage_block_melee: { reason: "Phase Boots melee damage block" }
+      damage_block_ranged: { reason: "Phase Boots ranged damage block" }
+      phase_duration: { reason: "Phase Boots active duration" }
+    abilities:
+      - name: "Phase"
+        type: active
+        stats:
+          - phase_movement_speed
+          - phase_movement_speed_range
+          - phase_duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_movement_speed
+          - bonus_damage_melee
+          - bonus_damage_range
+          - damage_block_melee
+          - damage_block_ranged
+          - block_chance
+          - bonus_attack_speed
+          - bonus_armor
+
+  item_satanic:
+    uptime_stats:
+      unholy_lifesteal_percent:
+        cooldown_stat: AbilityCooldown
+        duration_stat: unholy_duration
+        reason: "Unholy Rage: +145% lifesteal for 6s / 30s CD"
+    comment: "Active grants massive temporary lifesteal."
+    ignored_stats:
+      unholy_duration: { reason: "Unholy Strength active duration" }
+      unholy_lifesteal_total_tooltip: { reason: "Unholy lifesteal total display" }
+    abilities:
+      - name: "Unholy Rage"
+        type: active
+        stats:
+          - unholy_lifesteal_percent
+          - unholy_lifesteal_total_tooltip
+          - unholy_duration
+      - name: "Lifesteal"
+        type: passive
+        stats:
+          - lifesteal_percent
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_strength
+          - bonus_damage
+
+  item_mask_of_madness:
+    custom_stats:
+      cc_silence:
+        formula: "-0.5 * berserk_duration / sqrt(AbilityCooldown)"
+        comment: "Self-silence penalty × 0.5: controllable timing, BKB pierces"
+    uptime_stats:
+      berserk_bonus_attack_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: berserk_duration
+        reason: "Berserk: +100 AS for 6s / 16s CD"
+      berserk_bonus_movement_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: berserk_duration
+        reason: "Berserk: +25 MS for 6s / 16s CD"
+      berserk_armor_reduction:
+        cooldown_stat: AbilityCooldown
+        duration_stat: berserk_duration
+        stat_as: penalty_armor
+        reason: "Berserk penalty: -8 armor for 6s / 16s CD"
+    comment: "Berserk: AS/MS buff + armor penalty + self-silence for 6s / 16s CD."
+    ignored_stats:
+      berserk_duration: { reason: "Berserk buff duration (used for uptime calc)" }
+    abilities:
+      - name: "Berserk"
+        type: active
+        stats:
+          - berserk_bonus_attack_speed
+          - berserk_bonus_movement_speed
+          - berserk_armor_reduction
+          - berserk_duration
+      - name: "Lifesteal"
+        type: passive
+        stats:
+          - bonus_damage
+          - lifesteal_percent
+
+  item_solar_crest:
+    uptime_stats:
+      target_attack_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Active: +60 AS on ally for 7s / 16s CD"
+      target_armor:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Active: +5 armor on ally for 7s / 16s CD"
+      target_movement_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Active: +15 MS on ally for 7s / 16s CD"
+      absorb_amount:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Active: 350 phys barrier for 7s / 16s CD"
+    comment: "Solar Crest active: buff ally for 7s / 16s CD."
+    abilities:
+      - name: "Shine"
+        type: active
+        stats:
+          - target_attack_speed
+          - target_armor
+          - target_movement_speed
+          - duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_armor
+          - bonus_all_stats
+          - self_movement_speed
+          - bonus_mana
+          - bonus_health
+          - absorb_amount
+
+  item_hermes_sandals:
+    switchable_stats:
+      bonus_damage_melee:
+        multiplier: 0.5
+        reason: "Melee-only stat - averaged for hero type distribution"
+      bonus_damage_range:
+        multiplier: 0.5
+        reason: "Ranged-only stat - averaged for hero type distribution"
+    comment: "Damage bonus same for both types (20/20). Using 50% average."
+
+  # -------------------------------------------------------------------------
+  # Dagon (all levels) - Active burst damage with cooldown
+  # Cooldown read from raw_data.AbilityCooldown (auto per level)
+  # -------------------------------------------------------------------------
+  item_dagon:
+    uptime_stats:
+      damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Active burst damage on cooldown"
+    ignored_stats:
+      dagon_spell_lifesteal:
+        reason: "Burst-only lifesteal on Dagon active, not permanent"
+    comment: "Active ability item. passive_spell_lifesteal is permanent."
+    abilities:
+      - name: "Energy Burst"
+        type: active
+        stats:
+          - damage
+
+  item_dagon_2:
+    display_name: "Dagon 2"
+    uptime_stats:
+      damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Active burst damage on cooldown"
+    ignored_stats:
+      dagon_spell_lifesteal:
+        reason: "Burst-only lifesteal on Dagon active, not permanent"
+    comment: "Active ability item. passive_spell_lifesteal is permanent."
+    abilities:
+      - name: "Energy Burst"
+        type: active
+        stats:
+          - damage
+
+  item_dagon_3:
+    display_name: "Dagon 3"
+    uptime_stats:
+      damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Active burst damage on cooldown"
+    ignored_stats:
+      dagon_spell_lifesteal:
+        reason: "Burst-only lifesteal on Dagon active, not permanent"
+    comment: "Active ability item. passive_spell_lifesteal is permanent."
+    abilities:
+      - name: "Energy Burst"
+        type: active
+        stats:
+          - damage
+
+  item_dagon_4:
+    display_name: "Dagon 4"
+    uptime_stats:
+      damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Active burst damage on cooldown"
+    ignored_stats:
+      dagon_spell_lifesteal:
+        reason: "Burst-only lifesteal on Dagon active, not permanent"
+    comment: "Active ability item. passive_spell_lifesteal is permanent."
+    abilities:
+      - name: "Energy Burst"
+        type: active
+        stats:
+          - damage
+
+  item_dagon_5:
+    display_name: "Dagon 5"
+    uptime_stats:
+      damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Active burst damage on cooldown"
+    ignored_stats:
+      dagon_spell_lifesteal:
+        reason: "Burst-only lifesteal on Dagon active, not permanent"
+    comment: "Active ability item. passive_spell_lifesteal is permanent."
+    abilities:
+      - name: "Energy Burst"
+        type: active
+        stats:
+          - damage
+
+  # -------------------------------------------------------------------------
+  # Active ability items - uptime-based stat valuation
+  # -------------------------------------------------------------------------
+  item_glimmer_cape:
+    ability_value: "item_cost:item_shadow_amulet"
+    uptime_stats:
+      barrier_block:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Active: 375 magic barrier for 5s / 15s CD"
+      active_movement_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Active: +20 MS for 5s / 15s CD"
+    comment: "Invis = Shadow Amulet cost. Active: barrier + MS for 5s / 15s CD."
+    ignored_stats:
+      initial_fade_delay: { reason: "Glimmer Cape initial fade delay" }
+      secondary_fade_delay: { reason: "Glimmer Cape secondary fade delay" }
+    abilities:
+      - name: "Glimmer"
+        type: active
+        stats:
+          - barrier_block
+          - active_movement_speed
+          - duration
+          - initial_fade_delay
+          - secondary_fade_delay
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_magical_armor
+
+  item_silver_edge:
+    ability_value: "item_cost:item_shadow_amulet"
+    uptime_stats:
+      windwalk_movement_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: windwalk_duration
+        reason: "Shadow Walk: +25 MS for 17s / 20s CD"
+      windwalk_bonus_damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Shadow Walk: 300 instant damage / 20s CD"
+    comment: "Break (disable passives) not valued. Invis = Shadow Amulet cost."
+    ability_not_evaluated: true
+    ignored_stats:
+      backstab_duration: { reason: "Silver Edge break duration" }
+      max_movement_speed: { reason: "Silver Edge max movement speed" }
+      visibility_radius: { reason: "Detection/visibility radius" }
+      windwalk_duration: { reason: "Shadow Blade invisibility duration" }
+      windwalk_fade_time: { reason: "Time to become invisible" }
+    abilities:
+      - name: "Shadow Walk"
+        type: active
+        stats:
+          - windwalk_movement_speed
+          - windwalk_bonus_damage
+
+  item_bloodthorn:
+    custom_stats:
+      cc_silence:
+        formula: "silence_duration / sqrt(AbilityCooldown)"
+        comment: "Silence 5.0s / sqrt(15s CD)"
+      pierce_damage:
+        formula: "proc_damage_heroes * proc_chance / 100"
+        axiom: bonus_damage
+        comment: "Pierce: 50 dmg × 40% = avg 20 per attack (permanent passive)"
+    uptime_stats:
+      spell_amp_debuff:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Soul Rend: -35% spell amp debuff for 6s / 15s CD"
+    comment: "Soul Rend 60% damage replay not valued. Pierce proc valued."
+    ability_not_evaluated: true
+    ignored_stats:
+      passive_proc_damage: { reason: "Bloodthorn passive proc damage (creeps)" }
+      proc_chance: { reason: "Consumed by pierce_damage custom_stat" }
+      proc_damage_creeps: { reason: "Proc damage against creeps (lower, ignored)" }
+      proc_damage_heroes: { reason: "Consumed by pierce_damage custom_stat" }
+      silence_damage_percent: { reason: "Orchid/Bloodthorn silence damage amp" }
+      silence_duration: { reason: "Consumed by cc_silence custom_stat" }
+    abilities:
+      - name: "Soul Rend"
+        type: active
+        stats:
+          - spell_amp_debuff
+          - silence_duration
+          - cc_silence
+      - name: "Pierce"
+        type: passive
+        stats:
+          - proc_chance
+          - proc_damage_heroes
+          - pierce_damage
+
+  item_angels_demise:
+    uptime_stats:
+      bonus_spell_damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Passive proc: 250 magic damage / 9s CD"
+    comment: "Spell damage proc on ability cast. Note: bonus_spell_damage axiom is currently 0 gold_per_point."
+
+  # -------------------------------------------------------------------------
+  # Temporary buff fixes - stats wrongly counted as permanent
+  # -------------------------------------------------------------------------
+  item_hurricane_pike:
+    uptime_stats:
+      bonus_attack_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: range_duration
+        reason: "Active: +100 AS for 6s on 19s CD"
+    comment: "Push via displacement axiom. +140 attack range not valued (ranged only)."
+    ignored_stats:
+      cast_range_enemy: { reason: "Hurricane Pike enemy cast range" }
+      dizzy_distance_pct: { reason: "Hurricane Pike dizzy distance percent" }
+      dizzy_duration: { reason: "Hurricane Pike dizzy effect duration" }
+      enemy_length: { reason: "Hurricane Pike enemy push distance" }
+      max_attacks: { reason: "Hurricane Pike max bonus attacks" }
+      push_time: { reason: "Force Staff push duration" }
+      range_duration: { reason: "Hurricane Pike attack range duration" }
+    abilities:
+      - name: "Hurricane Thrust"
+        type: active
+        stats:
+          - bonus_attack_speed
+          - push_length
+          - enemy_length
+          - range_duration
+          - cast_range_enemy
+          - max_attacks
+          - push_time
+          - dizzy_duration
+          - dizzy_distance_pct
+      - name: "Dragon's Reach"
+        type: passive
+        stats:
+          - base_attack_range
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_intellect
+          - bonus_health
+          - bonus_agility
+          - bonus_strength
+
+  item_boots_of_bearing:
+    uptime_stats:
+      bonus_attack_speed_pct:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        stat_as: aura_attack_speed
+        reason: "Endurance: +50% AS to allies for 6s / 30s CD."
+      bonus_movement_speed_pct:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        stat_as: aura_movement_speed_pct
+        reason: "Endurance: +13% MS to allies for 6s / 30s CD."
+    comment: "Active provides AoE AS/MS buff with CD uptime + aura pricing."
+    ignored_stats:
+      bonus_ms_duration: { reason: "Boots of Bearing MS bonus duration" }
+    abilities:
+      - name: "Endurance"
+        type: active
+        stats:
+          - bonus_attack_speed_pct
+          - bonus_movement_speed_pct
+      - name: "Swiftness Aura"
+        type: aura
+        stats:
+          - aura_movement_speed
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_str
+          - bonus_int
+          - bonus_movement_speed
+          - bonus_health_regen
+
+  item_aeon_disk:
+    ability_not_evaluated: true
+    uptime_stats:
+      status_resistance:
+        cooldown_stat: AbilityCooldown
+        duration_stat: buff_duration
+        reason: "Passive trigger: 75% status resist for 2.5s / 105s CD"
+    comment: "Combo Breaker (strong dispel + damage reduction at HP threshold) not valued — survival mechanic"
+    ignored_stats:
+      buff_duration: { reason: "Buff effect duration" }
+      cooldown_duration: { reason: "Refresher/Aeon Disk cooldown period" }
+      health_threshold_pct: { reason: "Aeon Disk health trigger threshold" }
+      initial_cooldown: { reason: "Aeon Disk initial cooldown" }
+    abilities:
+      - name: "Combo Breaker"
+        type: passive
+        stats:
+          - status_resistance
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_health
+          - bonus_mana
+
+  item_ghost:
+    display_name: "Ghost Scepter"
+    ability_value: "item_cost:item_ghost"
+    uptime_stats:
+      extra_spell_damage_percent:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Ghost Form penalty: take 30% more spell damage for 4s / 22s CD"
+    comment: "Ghost form active: ethereal for 4s / 22s CD. Utility value similar to Blink Dagger."
+    abilities:
+      - name: "Ghost Form"
+        type: active
+        stats:
+          - extra_spell_damage_percent
+
+  item_black_king_bar:
+    custom_stats:
+      cc_immunity:
+        formula: "duration / sqrt(AbilityCooldown)"
+        comment: "Avatar spell immunity 9s / 95s CD"
+    uptime_stats:
+      magic_resist:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "BKB active: 60% magic resistance for 9s / 95s CD"
+    ignored_stats:
+      duration: { reason: "Avatar duration (used in cc_immunity formula)" }
+    comment: "Magic resistance only active during BKB duration. Spell immunity valued as negative CC."
+    abilities:
+      - name: "Avatar"
+        type: active
+        stats:
+          - magic_resist
+          - cc_immunity
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_strength
+          - bonus_damage
+
+  item_soul_ring:
+    comment: "Sacrifice: mana_gain valued via (mana_regen - hp_regen)/2 axiom with CD uptime."
+    uptime_stats:
+      mana_gain:
+        cooldown_stat: AbilityCooldown
+        reason: "170 mana / 25s CD. Valued as net mana regen minus HP drain, halved for temp."
+    abilities:
+      - name: "Sacrifice"
+        type: active
+        stats:
+          - mana_gain
+
+  item_javelin:
+    ignored_stats:
+      bonus_chance: { reason: "Chance modifier for bonus_chance_damage (consumed by chance_stat)" }
+    abilities:
+      - name: "Pierce"
+        type: passive
+        stats:
+          - bonus_chance
+          - bonus_chance_damage
+
+  item_shadow_amulet:
+    ability_value: "item_cost:item_shadow_amulet"
+    comment: "100% ability item. Invisibility baseline."
+    ignored_stats:
+      fade_duration: { reason: "Shadow Amulet fade duration" }
+      fade_time: { reason: "Fade to invisibility time" }
+      movement_speed_reduction: { reason: "Shadow Amulet movement speed reduction" }
+    abilities:
+      - name: "Fade"
+        type: active
+        stats: []
+
+  item_pavise:
+    uptime_stats:
+      absorb_amount:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "250 phys barrier / 16s CD / 7s duration."
+    abilities:
+      - name: "Protect"
+        type: active
+        stats:
+          - absorb_amount
+
+  item_ancient_janggo:
+    display_name: "Drum of Endurance"
+    ignored_stats:
+      charges_tooltip: { reason: "Charges display tooltip" }
+    uptime_stats:
+      bonus_attack_speed_pct:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        stat_as: aura_attack_speed
+        reason: "Endurance: 35 AS to allies for 6s / 45s CD."
+      bonus_movement_speed_pct:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        stat_as: aura_movement_speed_pct
+        reason: "Endurance: 13% MS to allies for 6s / 45s CD."
+    abilities:
+      - name: "Endurance"
+        type: active
+        stats:
+          - bonus_movement_speed_pct
+          - bonus_attack_speed_pct
+      - name: "Swiftness Aura"
+        type: aura
+        stats:
+          - aura_movement_speed
+
+  item_mekansm:
+    uptime_stats:
+      heal_amount:
+        cooldown_stat: AbilityCooldown
+        stat_as: aura_health_regen
+        reason: "250 HP / 50s CD to team. Priced as aura health regen equivalent"
+    comment: "Restore: 250 HP to allies every 50s. Valued as aura_health_regen with CD uptime."
+    ignored_stats:
+      heal_radius: { reason: "Area of effect for healing abilities" }
+    abilities:
+      - name: "Restore"
+        type: active
+        stats:
+          - heal_amount
+      - name: "Mekansm Aura"
+        type: aura
+        stats:
+          - aura_health_regen
+
+  item_heart:
+    display_name: "Heart of Tarrasque"
+    comment: "STR + flat regen + missing HP regen (Behemoth's Blood)."
+    abilities:
+      - name: "Behemoth's Blood"
+        type: passive
+        stats:
+          - missing_health_regen
+
+  item_greater_crit:
+    display_name: "Daedalus"
+    comment: "Crit valued via custom_stats formula: chance × (mult-100) = expected DPS%"
+    custom_stats:
+      crit_expected_dps:
+        formula: "crit_chance / 100 * (crit_multiplier - 100)"
+        comment: "30% × 125% = 37.5% DPS increase"
+    abilities:
+      - name: "Critical Strike"
+        type: passive
+        stats:
+          - crit_chance
+          - crit_multiplier
+          - crit_expected_dps
+
+  item_faerie_fire:
+    ignored_stats:
+      hp_restore: { reason: "Consumable HP restoration" }
+    abilities:
+      - name: "Imbue"
+        type: active
+        stats:
+          - hp_restore
+
+  item_enchanted_mango:
+    ignored_stats:
+      replenish_amount: { reason: "Replenish consumable amount" }
+    abilities:
+      - name: "Eat Mango"
+        type: active
+        stats:
+          - replenish_amount
+
+  item_orb_of_venom:
+    uptime_stats:
+      damage:
+        duration_stat: "poison_duration"
+    ignored_stats:
+      poison_duration: { reason: "Poison effect duration" }
+      tick_interval: { reason: "Time between ability ticks" }
+    comment: "DoT item. Slow not in game data — unpriced."
+    abilities:
+      - name: "Poison Attack"
+        type: passive
+        stats:
+          - damage
+
+  item_buckler:
+    ignored_stats:
+      bonus_aoe_radius: { reason: "Buckler/Crimson Guard aura radius" }
+    abilities:
+      - name: "Buckler Aura"
+        type: aura
+        stats:
+          - bonus_aoe_armor
+
+  item_ring_of_basilius:
+    abilities:
+      - name: "Basilius Aura"
+        type: aura
+        stats:
+          - aura_mana_regen
+
+  item_headdress:
+    abilities:
+      - name: "Regeneration Aura"
+        type: aura
+        stats:
+          - aura_health_regen
+
+  item_magic_stick:
+    uptime_stats:
+      restore_per_charge:
+        manual_uptime: 0.0667
+    comment: "Charge-based burst heal+mana. 10ch x 15/ch, once per 2.5 min."
+    abilities:
+      - name: "Energy Charge"
+        type: active
+        stats:
+          - restore_per_charge
+
+  item_magic_wand:
+    uptime_stats:
+      restore_per_charge:
+        manual_uptime: 0.0667
+    comment: "Charge-based burst heal+mana. 20ch x 15/ch, once per 5 min."
+    abilities:
+      - name: "Energy Charge"
+        type: active
+        stats:
+          - restore_per_charge
+
+  # -------------------------------------------------------------------------
+  # Batch 10: Dragon Lance, Crystalys, Hand of Midas, Vladmir's, Force Staff, Rod of Atos, Aether Lens, Boots of Travel
+  # -------------------------------------------------------------------------
+  item_dragon_lance:
+    comment: "+140 attack range not valued (ranged heroes only, no axiom)."
+    abilities:
+      - name: "Dragon's Reach"
+        type: passive
+        stats:
+          - base_attack_range
+
+  item_lesser_crit:
+    display_name: "Crystalys"
+    comment: "Crit valued via custom_stats formula: chance × (mult-100) = expected DPS%"
+    custom_stats:
+      crit_expected_dps:
+        formula: "crit_chance / 100 * (crit_multiplier - 100)"
+        comment: "30% × 60% = 18% DPS increase"
+    ignored_stats:
+      tooltip_crit_damage: { reason: "Crit damage tooltip (crit valued via ability_value)" }
+    abilities:
+      - name: "Critical Strike"
+        type: passive
+        stats:
+          - crit_chance
+          - crit_multiplier
+          - crit_expected_dps
+
+  item_hand_of_midas:
+    comment: "Transmute gold gen: 160g × 16.67 uses = 2667g over ~25 min."
+    abilities:
+      - name: "Transmute"
+        type: active
+        stats:
+          - bonus_gold
+
+  item_vladmir:
+    display_name: "Vladmir's Offering"
+    ignored_stats:
+      damage_self: { reason: "Vladmir self damage aura" }
+      lifesteal_creeps_tooltip: { reason: "Creep lifesteal tooltip display" }
+      lifesteal_self: { reason: "Vladmir self lifesteal" }
+    abilities:
+      - name: "Vladmir's Aura"
+        type: aura
+        stats:
+          - armor_aura
+          - mana_regen_aura
+          - lifesteal_aura
+          - damage_aura
+          - lifesteal_self
+          - damage_self
+
+  item_force_staff:
+    comment: "Push valued via displacement axiom (600u × 1.875 g/u)."
+    ignored_stats:
+      enemy_cast_range: { reason: "Force Staff enemy cast range" }
+      push_time: { reason: "Force Staff push duration" }
+    abilities:
+      - name: "Force"
+        type: active
+        stats: []
+
+  item_rod_of_atos:
+    custom_stats:
+      cc_root:
+        formula: "duration / sqrt(AbilityCooldown)"
+        comment: "Cripple root 2.0s / sqrt(18s CD)"
+    abilities:
+      - name: "Cripple"
+        type: active
+        stats:
+          - cc_root
+
+  item_aether_lens:
+    abilities:
+      - name: "Aethereal Focus"
+        type: passive
+        stats:
+          - cast_range_bonus
+
+  item_travel_boots:
+    ability_not_evaluated: true
+    comment: "Teleport to allied buildings/creeps not valued — global mobility has no stat equivalent"
+    display_name: "Boots of Travel"
+    ignored_stats:
+      maximum_distance: { reason: "Maximum ability distance" }
+      tp_cooldown: { reason: "Teleport cooldown" }
+    abilities:
+      - name: "Upgrade: Town Portal Scroll"
+        type: active
+        stats: []
+
+  item_armlet:
+    display_name: "Armlet of Mordiggian"
+    uptime_stats:
+      unholy_bonus_strength:
+        manual_uptime: 0.5
+        reason: "Unholy Strength toggle: +25 STR, assumed 50% uptime"
+      unholy_bonus_damage:
+        manual_uptime: 0.5
+        reason: "Unholy Strength toggle: +35 damage, assumed 50% uptime"
+      unholy_bonus_armor:
+        manual_uptime: 0.5
+        reason: "Unholy Strength toggle: +4 armor, assumed 50% uptime"
+      unholy_health_drain_per_second:
+        manual_uptime: 0.5
+        stat_as: penalty_health_regen
+        reason: "HP drain penalty: -45 HP/s, assumed 50% uptime"
+    ignored_stats:
+      toggle_cooldown: { reason: "Armlet toggle cooldown" }
+      unholy_bonus_slow_resistance: { reason: "Armlet active slow resistance" }
+    comment: "Armlet toggle mechanics: Unholy Strength provides temporary bonuses and HP drain penalty."
+    abilities:
+      - name: "Unholy Strength"
+        type: active
+        stats:
+          - unholy_bonus_strength
+          - unholy_bonus_damage
+          - unholy_bonus_armor
+          - unholy_health_drain_per_second
+
+  item_cyclone:
+    display_name: "Eul's Scepter of Divinity"
+    custom_stats:
+      cc_cyclone:
+        formula: "cyclone_duration / sqrt(AbilityCooldown)"
+        comment: "Cyclone (self or enemy)"
+    ignored_stats:
+      cyclone_duration: { reason: "Eul's cyclone effect duration" }
+      tooltip_drop_damage: { reason: "Drop damage tooltip value" }
+    abilities:
+      - name: "Cyclone"
+        type: active
+        stats:
+          - cyclone_duration
+          - cc_cyclone
+
+  item_echo_sabre:
+    custom_stats:
+      bonus_attack_speed:
+        formula: "20"
+        comment: "Echo Strike double attack ≈ +20 AS (1 extra atk / 5s CD)"
+    uptime_stats:
+      movement_slow:
+        cooldown_stat: AbilityCooldown
+        duration_stat: slow_duration
+        reason: "Echo Strike: 100% slow for 0.8s / 5s CD"
+    abilities:
+      - name: "Echo Strike"
+        type: passive
+        stats:
+          - movement_slow
+          - slow_duration
+
+  item_invis_sword:
+    display_name: "Shadow Blade"
+    ability_value: "item_cost:item_shadow_amulet"
+    uptime_stats:
+      windwalk_movement_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: windwalk_duration
+        reason: "Shadow Walk: +20 MS for 17s / 20s CD"
+      windwalk_bonus_damage:
+        cooldown_stat: AbilityCooldown
+        reason: "Shadow Walk: 175 instant damage / 20s CD"
+    comment: "Invis = Shadow Amulet cost. Shadow Walk: MS + backstab damage."
+    ignored_stats:
+      windwalk_duration: { reason: "Shadow Blade invisibility duration" }
+      windwalk_fade_time: { reason: "Time to become invisible" }
+    abilities:
+      - name: "Shadow Walk"
+        type: active
+        stats:
+          - windwalk_movement_speed
+          - windwalk_bonus_damage
+
+  item_orchid:
+    display_name: "Orchid Malevolence"
+    comment: "Soul Burn damage amp (30% of damage dealt during silence) not valued"
+    custom_stats:
+      cc_silence:
+        formula: "silence_duration / sqrt(AbilityCooldown)"
+        comment: "Silence 5.0s / sqrt(18s CD)"
+    ignored_stats:
+      silence_damage_percent: { reason: "Orchid/Bloodthorn silence damage amp" }
+      silence_duration: { reason: "Silence effect duration" }
+    abilities:
+      - name: "Soul Burn"
+        type: active
+        stats:
+          - silence_damage_percent
+          - silence_duration
+          - cc_silence
+
+  item_revenants_brooch:
+    display_name: "Revenant's Brooch"
+    comment: "Phantom Critical: magical crit. crit_multiplier=80 means +80% bonus (not total like Crystalys)."
+    custom_stats:
+      crit_expected_dps:
+        formula: "crit_chance / 100 * crit_multiplier"
+        comment: "30% × 80% = 24% DPS increase (Liquipedia confirms avg 24%)"
+    ignored_stats:
+      crit_chance: { reason: "Used in custom_stats crit formula" }
+      crit_multiplier: { reason: "Used in custom_stats crit formula" }
+    abilities:
+      - name: "Phantom Critical"
+        type: passive
+        stats:
+          - crit_chance
+          - crit_multiplier
+          - crit_expected_dps
+
+  # -------------------------------------------------------------------------
+  # -------------------------------------------------------------------------
+  # Batch 12: Pipe, Lotus Orb, BFury, Moon Shard, BKB, S&Y, K&S, Y&K, Travels 2, Gungir
+  # -------------------------------------------------------------------------
+  item_pipe:
+    display_name: "Pipe of Insight"
+    ignored_stats:
+      barrier_block_creep: { reason: "Pipe barrier creep block amount" }
+      barrier_debuff_duration: { reason: "Pipe barrier debuff duration" }
+      barrier_duration: { reason: "Barrier ability duration" }
+      barrier_radius: { reason: "Pipe barrier effect radius" }
+      tooltip_resist: { reason: "Resistance tooltip display value" }
+    abilities:
+      - name: "Barrier"
+        type: active
+        stats:
+          - barrier_block
+      - name: "Insight Aura"
+        type: aura
+        stats:
+          - aura_health_regen
+          - magic_resistance_aura
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - health_regen
+          - magic_resistance
+
+  item_lotus_orb:
+    custom_stats:
+      cc_reflect:
+        formula: "active_duration / sqrt(AbilityCooldown)"
+        comment: "Echo Shell reflect 5s / 15s CD"
+    ignored_stats:
+      active_duration: { reason: "Echo Shell duration (used in cc_reflect formula)" }
+    abilities:
+      - name: "Echo Shell"
+        type: active
+        stats:
+          - cc_reflect
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_armor
+          - bonus_health_regen
+          - bonus_mana_regen
+          - bonus_mana
+
+  item_bfury:
+    display_name: "Battle Fury"
+    comment: "Cleave (65% AoE damage) and Quell (bonus creep damage) not valued — farming acceleration mechanics"
+    ignored_stats:
+      cleave_damage_percent: { reason: "Cleave damage percentage" }
+      cleave_damage_percent_creep: { reason: "Battle Fury creep cleave percent" }
+      cleave_distance: { reason: "Cleave effect distance" }
+      cleave_ending_width: { reason: "Cleave cone ending width" }
+      cleave_starting_width: { reason: "Cleave cone starting width" }
+      quelling_bonus: { reason: "Quelling Blade bonus damage" }
+      quelling_bonus_ranged: { reason: "Quelling Blade ranged bonus" }
+      upgraded_cleave_bonus: { reason: "Battle Fury upgraded cleave bonus" }
+      upgraded_damage_bonus: { reason: "Battle Fury upgraded damage bonus" }
+    abilities:
+      - name: "Cleave"
+        type: passive
+        stats:
+          - cleave_damage_percent
+          - cleave_damage_percent_creep
+      - name: "Quell"
+        type: passive
+        stats:
+          - quelling_bonus
+          - quelling_bonus_ranged
+      - name: "Chop Tree"
+        type: active
+        stats: []
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_health_regen
+          - bonus_mana_regen
+
+  item_moon_shard:
+    ignored_stats:
+      consumed_bonus: { reason: "Moon Shard consumed stat bonus" }
+      consumed_bonus_night_vision: { reason: "Moon Shard consumed night vision" }
+    abilities:
+      - name: "Shade Sight"
+        type: passive
+        stats:
+          - bonus_night_vision
+      - name: "Consume"
+        type: active
+        stats:
+          - consumed_bonus
+          - consumed_bonus_night_vision
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_attack_speed
+
+  item_sange_and_yasha:
+    abilities:
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_strength
+          - bonus_agility
+          - status_resistance
+          - bonus_attack_speed
+          - movement_speed_percent_bonus
+          - hp_regen_amp
+          - slow_resistance
+
+  item_kaya_and_sange:
+    abilities:
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_strength
+          - bonus_intellect
+          - slow_resistance
+          - mana_regen_multiplier
+          - spell_amp
+          - hp_regen_amp
+          - manacost_reduction
+
+  item_yasha_and_kaya:
+    ignored_stats:
+      cast_speed_pct: { reason: "Cast animation speed (Y&K only), utility not priced" }
+    abilities:
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_agility
+          - bonus_intellect
+          - bonus_attack_speed
+          - mana_regen_multiplier
+          - movement_speed_percent_bonus
+          - spell_amp
+          - cast_speed_pct
+
+  item_travel_boots_2:
+    ability_not_evaluated: true
+    comment: "Teleport to any allied unit (including heroes) not valued — global mobility has no stat equivalent"
+    display_name: "Boots of Travel 2"
+    ignored_stats:
+      maximum_distance: { reason: "Maximum ability distance" }
+      tp_channel_time: { reason: "Teleport channeling time" }
+      tp_cooldown: { reason: "Teleport cooldown" }
+    abilities:
+      - name: "Upgrade: Town Portal Scroll"
+        type: passive
+        stats: []
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_movement_speed
+
+  item_gungir:
+    display_name: "Gleipnir"
+    custom_stats:
+      cc_root:
+        formula: "duration / sqrt(AbilityCooldown) * aura_avg_targets"
+        comment: "Eternal Chains root 2.0s (AoE) / sqrt(18s CD) × avg targets"
+    ignored_stats:
+      bonus_aoe: { reason: "AoE spell radius bonus (Gungir/Bloodstone), utility not priced" }
+      radius_tooltip: { reason: "Radius display tooltip" }
+    abilities:
+      - name: "Eternal Chains"
+        type: active
+        stats:
+          - cc_root
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_aoe
+          - bonus_hp
+          - bonus_intellect
+          - bonus_mana
+
+  # Batch 13: Manta, MKB, Linken's, Octarine, Refresher, Assault, Shiva's, Scythe
+  # -------------------------------------------------------------------------
+  item_manta:
+    display_name: "Manta Style"
+    custom_stats:
+      illusion_dps:
+        formula: "(100 + images_do_damage_percent_melee) / 100 * images_count * illusion_duration / AbilityCooldown / 1.5 * expected_attack_damage"
+        comment: "Melee illusions: %dmg × count × uptime / 1.5 survivability × expected_dmg"
+    comment: >
+      Illusion DPS via formula. Survivability discount 1.5x for 300% incoming dmg.
+      Not valued: disjoint, basic dispel, splitpush, scouting, dodge.
+    ignored_stats:
+      illusion_duration: { reason: "Consumed by illusion_dps formula" }
+      images_count: { reason: "Consumed by illusion_dps formula" }
+      images_do_damage_percent_melee: { reason: "Consumed by illusion_dps formula" }
+      images_do_damage_percent_ranged: { reason: "Ranged variant, melee used in formula" }
+      images_take_damage_percent: { reason: "Survivability discount 1.5x in formula" }
+      invuln_duration: { reason: "Invulnerability effect duration" }
+      tooltip_damage_incoming_total_pct: { reason: "Incoming damage tooltip percentage" }
+      tooltip_damage_outgoing_melee: { reason: "Melee damage tooltip display" }
+      tooltip_damage_outgoing_ranged: { reason: "Ranged damage tooltip display" }
+    abilities:
+      - name: "Mirror Image"
+        type: active
+        stats:
+          - images_count
+          - illusion_duration
+          - images_do_damage_percent_melee
+          - images_do_damage_percent_ranged
+          - images_take_damage_percent
+          - illusion_multiplier_pct
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_strength
+          - bonus_agility
+          - bonus_intellect
+          - bonus_attack_speed
+          - bonus_movement_speed
+
+  item_monkey_king_bar:
+    ignored_stats:
+      bonus_chance: { reason: "Chance modifier for bonus_chance_damage (consumed by chance_stat)" }
+    abilities:
+      - name: "Pierce"
+        type: passive
+        stats:
+          - bonus_chance
+          - bonus_chance_damage
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_attack_speed
+
+  item_sphere:
+    display_name: "Linken's Sphere"
+    comment: "Spellblock (targeted spell block on 14s CD) provides utility beyond damage absorb value"
+    uptime_stats:
+      damage_absorb:
+        cooldown_stat: AbilityCooldown
+        duration_stat: upgrade_absorb_duration
+        reason: "Spellblock: 300 damage absorb shield for 10s / 14s CD"
+    ignored_stats:
+      block_cooldown: { reason: "Spellblock cooldown parameter" }
+      upgrade_absorb_duration: { reason: "Absorb duration used in uptime calc" }
+    abilities:
+      - name: "Spellblock"
+        type: passive
+        stats:
+          - damage_absorb
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_all_stats
+          - bonus_health_regen
+          - bonus_mana_regen
+
+  item_octarine_core:
+    abilities:
+      - name: "Cooldown Reduction"
+        type: passive
+        stats:
+          - bonus_cooldown
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_health
+          - bonus_mana
+          - bonus_health_regen
+          - bonus_mana_regen
+
+  item_refresher:
+    ability_not_evaluated: true
+    comment: "Reset Cooldowns active not valued — hero-dependent value"
+    display_name: "Refresher Orb"
+    ignored_stats:
+      cooldown_duration: { reason: "Refresher/Aeon Disk cooldown period" }
+    abilities:
+      - name: "Reset Cooldowns"
+        type: active
+        stats: []
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_health_regen
+          - bonus_mana_regen
+
+  item_assault:
+    display_name: "Assault Cuirass"
+    abilities:
+      - name: "Assault Aura"
+        type: aura
+        stats:
+          - aura_attack_speed
+          - aura_positive_armor
+          - aura_negative_armor
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_attack_speed
+          - bonus_armor
+
+  item_shivas_guard:
+    display_name: "Shiva's Guard"
+    comment: "Magic Weakness aura (magic resist reduction) not valued — debuff % not in game data"
+    custom_stats:
+      blast_aoe_damage:
+        formula: "blast_damage * aura_avg_targets"
+        axiom: damage
+        comment: "Arctic Blast 200 AoE magic dmg × 1.5 targets = 300 effective"
+      blast_slow_value:
+        formula: "-1 * blast_movement_speed * expected_move_speed / 100 * blast_debuff_duration / AbilityCooldown * aura_avg_targets"
+        axiom: bonus_movement_speed
+        comment: "40% slow × 365 MS × 4s/27s uptime × 1.5 targets"
+    uptime_stats:
+      aura_attack_speed:
+        stat_as: aura_negative_attack_speed
+        reason: "Shiva's AS aura is enemy debuff, not ally buff"
+    ignored_stats:
+      blast_damage: { reason: "Consumed by blast_aoe_damage custom_stat" }
+      blast_debuff_duration: { reason: "Consumed by blast_slow_value custom_stat" }
+      blast_movement_speed: { reason: "Consumed by blast_slow_value custom_stat" }
+      blast_radius: { reason: "Explosion/blast area of effect" }
+      blast_speed: { reason: "Shiva's blast expansion speed" }
+      resist_debuff_duration: { reason: "Magic Weakness debuff duration (not valued)" }
+    abilities:
+      - name: "Arctic Blast"
+        type: active
+        stats:
+          - blast_damage
+          - blast_movement_speed
+      - name: "Freezing Aura"
+        type: aura
+        stats:
+          - aura_attack_speed
+          - restoration_reduction_aura
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_intellect
+          - bonus_strength
+          - bonus_agility
+          - bonus_hp_regen
+          - bonus_armor
+          - spell_amp
+          - illusion_multiplier_pct
+
+  item_sheepstick:
+    display_name: "Scythe of Vyse"
+    custom_stats:
+      cc_hex:
+        formula: "sheep_duration / sqrt(AbilityCooldown)"
+        comment: "Hex 2.8s / 20s CD"
+    ignored_stats:
+      sheep_duration: { reason: "Hex duration (used in cc_hex custom_stats formula)" }
+      sheep_movement_speed: { reason: "Target speed under hex, not valued" }
+      upgrade_radius: { reason: "Upgraded ability radius (Sheepstick)" }
+    abilities:
+      - name: "Hex"
+        type: active
+        stats:
+          - sheep_duration
+          - sheep_movement_speed
+          - cc_hex
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_intellect
+          - bonus_mana_regen
+
+  # -------------------------------------------------------------------------
+  # Batch 16: Spirit Vessel, Witch Blade, Mage Slayer, Meteor Hammer, Maelstrom, Desolator, Eternal Shroud
+  # -------------------------------------------------------------------------
+  item_spirit_vessel:
+    custom_stats:
+      soul_release_value:
+        formula: "(soul_heal_amount * duration + (soul_damage_amount + enemy_hp_drain / 100 * expected_enemy_hp) * duration) / 2 * 0.3"
+        axiom: damage
+        reason: "Soul Release avg (heal + dmg w/ 4% drain @expected_enemy_hp) / 2, charge coeff 0.3"
+    uptime_stats:
+      restoration_reduction_enemy:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Soul Release: 70% heal reduction for 8s / 10s CD"
+    ignored_stats:
+      duration: { reason: "Consumed by uptime calc for restoration_reduction" }
+      enemy_hp_drain: { reason: "Consumed by soul_release_value formula" }
+      enemy_slow_pct: { reason: "Spirit Vessel enemy slow (0% in 7.40c)" }
+      heal_reduction_enemy: { reason: "Duplicate of restoration_reduction_enemy" }
+      soul_additional_charges: { reason: "Urn additional charges per kill" }
+      soul_damage_amount: { reason: "Valued via ability_value (charge-based)" }
+      soul_heal_amount: { reason: "Valued via ability_value (charge-based)" }
+      soul_initial_charge: { reason: "Urn initial soul charges" }
+      soul_radius: { reason: "Soul charge acquisition radius" }
+    abilities:
+      - name: "Soul Release"
+        type: active
+        stats:
+          - soul_heal_amount
+          - soul_damage_amount
+          - restoration_reduction_enemy
+          - heal_reduction_enemy
+          - enemy_hp_drain
+          - enemy_slow_pct
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_all_stats
+          - bonus_armor
+          - bonus_mana_regen
+          - bonus_health
+
+  item_witch_blade:
+    custom_stats:
+      witch_blade_dot:
+        formula: "int_damage_multiplier * bonus_intellect * slow_duration / AbilityCooldown"
+        reason: "Witch Blade DoT: 0.75*INT per tick, 4 ticks, CD 9s uptime"
+      witch_blade_slow:
+        formula: "slow * slow_duration / AbilityCooldown"
+        reason: "Witch Blade slow 25% for 4s / 9s CD"
+    ignored_stats:
+      int_damage_multiplier: { reason: "Valued via custom_stats witch_blade_dot" }
+      slow: { reason: "Consumed by witch_blade_slow custom_stat" }
+    abilities:
+      - name: "Witch Blade"
+        type: passive
+        stats:
+          - int_damage_multiplier
+          - slow
+          - slow_duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_intellect
+          - bonus_armor
+          - bonus_attack_speed
+          - bonus_mana_regen
+
+  item_mage_slayer:
+    comment: "20 magic DPS on-hit treated as +20 attack damage (duration and damage type ignored for simplicity)."
+    abilities:
+      - name: "Mage Slayer"
+        type: passive
+        stats:
+          - spell_amp_debuff
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_magical_armor
+          - bonus_damage
+          - bonus_attack_speed
+          - bonus_health_regen
+          - bonus_mana_regen
+
+  item_meteor_hammer:
+    comment: "Channeled AoE (0.5 channel discount × 1.5 AoE). Stun+burn+slow valued."
+    custom_stats:
+      meteor_stun:
+        formula: "stun_duration / sqrt(AbilityCooldown) * 0.5 * aura_avg_targets"
+        axiom: cc_stun
+        reason: "0.75s AoE stun, 24s CD, 0.5 channel discount, x1.5 AoE"
+      meteor_damage:
+        formula: "(impact_damage_units + burn_dps_units * burn_duration) * 0.5 * aura_avg_targets / AbilityCooldown"
+        axiom: damage
+        reason: "430 total AoE damage per cast, 24s CD, 0.5 channel, x1.5 AoE"
+      meteor_slow:
+        formula: "burn_slow * burn_duration * 0.5 * aura_avg_targets / AbilityCooldown"
+        axiom: bonus_movement_speed_percent
+        reason: "20% slow for 6s AoE, 24s CD, 0.5 channel, x1.5 AoE"
+    ignored_stats:
+      burn_dps_buildings: { reason: "Building-specific damage (valued via burn_dps_units)" }
+      burn_dps_units: { reason: "Consumed by meteor_damage formula" }
+      burn_duration: { reason: "Consumed by meteor_damage/meteor_slow formulas" }
+      burn_interval: { reason: "Burn tick interval (cosmetic)" }
+      burn_slow: { reason: "Consumed by meteor_slow formula" }
+      enemy_particles_visible: { reason: "Meteor Hammer enemy visibility flag" }
+      impact_damage_buildings: { reason: "Building-specific damage (valued via impact_damage_units)" }
+      impact_damage_units: { reason: "Consumed by meteor_damage formula" }
+      impact_radius: { reason: "Impact zone radius" }
+      land_time: { reason: "Meteor Hammer land time" }
+      max_duration: { reason: "Meteor Hammer channel duration (cosmetic)" }
+      stun_duration: { reason: "Consumed by meteor_stun formula" }
+    abilities:
+      - name: "Meteor Hammer"
+        type: active
+        stats:
+          - burn_dps_buildings
+          - burn_dps_units
+          - burn_slow
+          - stun_duration
+          - impact_damage_buildings
+          - impact_damage_units
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_strength
+          - bonus_agility
+          - bonus_intellect
+          - spell_amp
+          - mana_regen_multiplier
+
+  item_maelstrom:
+    ignored_stats:
+      chain_chance: { reason: "Chance modifier for chain_damage (consumed by chance_stat)" }
+      chain_cooldown: { reason: "Chain effect cooldown" }
+      chain_delay: { reason: "Delay between chain bounces" }
+      chain_radius: { reason: "Chain lightning/effect search radius" }
+      chain_strikes: { reason: "Number of chain bounces" }
+    abilities:
+      - name: "Chain Lightning"
+        type: passive
+        stats:
+          - chain_chance
+          - chain_damage
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_attack_speed
+
+  item_desolator:
+    comment: "Soul Stealer: 50% of max stacks as expected avg bonus damage."
+    custom_stats:
+      soul_stealer_damage:
+        formula: "max_damage * 0.5"
+        axiom: bonus_damage
+        reason: "Soul Stealer avg stacks: 50% of max +30 = +15 damage"
+    ignored_stats:
+      bonus_damage_per_assist: { reason: "Consumed by soul_stealer_damage (scaling rate)" }
+      bonus_damage_per_kill: { reason: "Consumed by soul_stealer_damage (scaling rate)" }
+      corruption_duration: { reason: "Armor corruption debuff duration" }
+      max_damage: { reason: "Consumed by soul_stealer_damage formula" }
+    abilities:
+      - name: "Corruption"
+        type: passive
+        stats:
+          - corruption_armor
+      - name: "Soul Stealer"
+        type: passive
+        stats:
+          - bonus_damage_per_kill
+          - bonus_damage_per_assist
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+
+  item_eternal_shroud:
+    ability_not_evaluated: true
+    comment: "Eternal Endurance (+3.5% MR/stack, max 6=+21%) + Shroud (25% mana restore) not valued"
+    ignored_stats:
+      mana_restore_pct: { reason: "Mana restoration percentage" }
+      max_stacks: { reason: "Maximum stack count" }
+      stack_duration: { reason: "Eternal Shroud stack duration" }
+      stack_resist: { reason: "Eternal Shroud stack resist" }
+      stack_threshold: { reason: "Eternal Shroud stack threshold" }
+    abilities:
+      - name: "Eternal Endurance"
+        type: passive
+        stats:
+          - stack_resist
+          - mana_restore_pct
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_spell_resist
+          - bonus_strength
+          - bonus_health
+
+  # -------------------------------------------------------------------------
+  # Batch 15: Phase Boots, Veil of Discord, MoM, Glimmer, Holy Locket, Blade Mail, Diffusal, HotD, Solar Crest, Phylactery
+  # -------------------------------------------------------------------------
+  item_veil_of_discord:
+    comment: "Magic Weakness active (magic resist reduction) not valued — debuff % not in game data"
+    ignored_stats:
+      debuff_radius: { reason: "Radius for debuff application" }
+      resist_debuff_duration: { reason: "Shiva's/Veil resistance debuff duration" }
+    abilities:
+      - name: "Magic Weakness"
+        type: active
+        stats:
+          - resist_debuff_duration
+          - debuff_radius
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_all_stats
+          - bonus_armor
+          - bonus_hp_regen
+          - spell_amp
+
+  item_holy_locket:
+    custom_stats:
+      charge_burst_heal:
+        formula: "(health_restore_per_charge + mana_restore_per_charge) * max_charges * 0.3"
+        axiom: damage
+        comment: "(17hp + 15mp) × 25ch × 0.3 avail = 240 effective burst"
+      heal_amp_value:
+        formula: "heal_increase_passive * 20 * 0.01"
+        axiom: bonus_health_regen
+        comment: "15% heal amp × 20 HP/s expected healer throughput = 3 HP/s equiv"
+    comment: "Heal amp valued at 20 HP/s expected healer throughput. Active +10% incoming not valued."
+    ignored_stats:
+      active_buff_duration: { reason: "Holy Locket active buff duration" }
+      charge_gain_timer: { reason: "Holy Locket charge gain timer" }
+      heal_increase_passive: { reason: "Consumed by heal_amp_value custom_stat" }
+      health_restore_per_charge: { reason: "Consumed by charge_burst_heal custom_stat" }
+      incoming_heal_increase_active: { reason: "Active incoming heal amp — hero-dependent" }
+      mana_restore_per_charge: { reason: "Consumed by charge_burst_heal custom_stat" }
+      use_cooldown: { reason: "Holy Locket use cooldown" }
+    abilities:
+      - name: "Holy Blessing"
+        type: active
+        stats:
+          - health_restore_per_charge
+          - mana_restore_per_charge
+          - incoming_heal_increase_active
+          - active_buff_duration
+          - use_cooldown
+      - name: "Energy Charge"
+        type: passive
+        stats:
+          - max_charges
+          - charge_radius
+          - charge_gain_timer
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_health
+          - bonus_mana
+          - bonus_all_stats
+          - heal_increase_passive
+
+  item_blade_mail:
+    uptime_stats:
+      active_reflection_pct:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        stat_as: damage_reflection_pct
+        reason: "Active: 85% reflect for 5.5s / 25s CD"
+      passive_reflection_pct:
+        stat_as: damage_reflection_pct
+        reason: "Passive: 15% damage reflection (permanent)"
+      passive_reflection_constant:
+        manual_uptime: 0.5
+        stat_as: bonus_damage
+        reason: "Passive: 10 flat damage returned per hit (x0.5 — only when attacked)"
+    abilities:
+      - name: "Damage Return"
+        type: active
+        stats:
+          - active_reflection_pct
+          - duration
+      - name: "Damage Return (Passive)"
+        type: passive
+        stats:
+          - passive_reflection_pct
+          - passive_reflection_constant
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_armor
+          - bonus_intellect
+
+  item_diffusal_blade:
+    custom_stats:
+      cc_root:
+        formula: "purge_root_duration / sqrt(AbilityCooldown)"
+        comment: "Inhibit root 3s / sqrt(15s CD). Purge + slow not valued."
+    ignored_stats:
+      damage_per_burn: { reason: "Diffusal mana burn damage" }
+      feedback_mana_burn_illusion_melee: { reason: "Diffusal illusion mana burn (melee)" }
+      feedback_mana_burn_illusion_ranged: { reason: "Diffusal illusion mana burn (ranged)" }
+      purge_rate: { reason: "Diffusal purge slow rate" }
+      purge_root_duration: { reason: "Consumed by cc_root custom_stat" }
+      purge_slow_duration: { reason: "Diffusal purge slow duration" }
+    abilities:
+      - name: "Inhibit"
+        type: active
+        stats:
+          - purge_rate
+          - purge_root_duration
+          - purge_slow_duration
+      - name: "Manabreak"
+        type: passive
+        stats:
+          - feedback_mana_burn
+          - damage_per_burn
+          - feedback_mana_burn_illusion_melee
+          - feedback_mana_burn_illusion_ranged
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_agility
+          - bonus_intellect
+
+  item_helm_of_the_dominator:
+    ability_not_evaluated: true
+    comment: "Dominate ability not valued — creep combat value too hero/creep-dependent"
+    ignored_stats:
+      bounty_gold: { reason: "Gold bounty value" }
+      bounty_pct: { reason: "HotD creep bounty percentage" }
+      count_limit: { reason: "HotD dominated creep limit" }
+      creep_ability_level_increase: { reason: "HotD creep ability level increase" }
+      creep_bonus_armor: { reason: "Dominated creep armor" }
+      creep_bonus_hp_regen: { reason: "HotD creep HP regen bonus" }
+      creep_bonus_mp_regen: { reason: "HotD creep mana regen bonus" }
+      creep_damage_taken_cooldown: { reason: "HotD creep damage taken cooldown" }
+      health_min: { reason: "Minimum creep health" }
+      speed_base: { reason: "Base creep movement speed" }
+    abilities:
+      - name: "Dominate"
+        type: active
+        stats:
+          - health_min
+          - speed_base
+          - bounty_gold
+          - creep_bonus_damage
+          - creep_bonus_hp_regen
+          - creep_bonus_mp_regen
+          - creep_bonus_armor
+          - model_scale
+          - count_limit
+          - creep_ability_level_increase
+          - creep_damage_taken_cooldown
+          - bounty_pct
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_stats
+          - bonus_armor
+          - bonus_regen
+
+  item_phylactery:
+    custom_stats:
+      empower_slow:
+        formula: "slow * slow_duration / AbilityCooldown"
+        axiom: bonus_movement_speed_percent
+        comment: "Empower Spell: 30% slow × 3s / 9s CD"
+    ignored_stats:
+      bonus_per_kill: { reason: "Bonus gained per kill" }
+      kill_bonus_window: { reason: "Phylactery kill bonus window" }
+      max_kill_bonus: { reason: "Maximum kill bonus cap" }
+      slow: { reason: "Consumed by empower_slow custom_stat" }
+    abilities:
+      - name: "Empower Spell"
+        type: passive
+        stats:
+          - bonus_spell_damage
+          - slow
+          - slow_duration
+          - kill_bonus_window
+          - bonus_per_kill
+          - max_kill_bonus
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_all_stats
+          - bonus_health_regen
+          - bonus_mana_regen
+
+  # -------------------------------------------------------------------------
+  # Batch 14: Butterfly, Skadi, Devastator, Blood Grenade, Bottle,
+  #           Urn of Shadows, Tranquil Boots, Arcane Boots
+  # -------------------------------------------------------------------------
+  item_butterfly:
+    abilities:
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_agility
+          - bonus_evasion
+          - bonus_attack_speed_pct
+          - bonus_damage
+
+  item_skadi:
+    display_name: "Eye of Skadi"
+    ignored_stats:
+      cold_duration: { reason: "Cold attack slow duration" }
+      restoration_reduction: { reason: "Duplicates heal_reduction on target" }
+    switchable_stats:
+      cold_slow_melee:
+        multiplier: 0.5
+        reason: "Melee-only MS slow - averaged for hero type distribution"
+      cold_slow_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only MS slow - averaged for hero type distribution"
+      cold_attack_slow_melee:
+        multiplier: 0.5
+        reason: "Melee-only AS slow - averaged for hero type distribution"
+      cold_attack_slow_ranged:
+        multiplier: 0.5
+        reason: "Ranged-only AS slow - averaged for hero type distribution"
+    comment: "Slow values differ by attack type. Using 50% average."
+    abilities:
+      - name: "Cold Attack"
+        type: passive
+        stats:
+          - cold_slow_melee
+          - cold_attack_slow_melee
+          - cold_slow_ranged
+          - cold_attack_slow_ranged
+          - cold_duration
+          - restoration_reduction
+          - heal_reduction
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_all_stats
+          - bonus_health
+          - bonus_mana
+
+  item_devastator:
+    display_name: "Parasma"
+    custom_stats:
+      witch_blade_dot:
+        formula: "int_damage_multiplier * bonus_intellect * slow_duration / AbilityCooldown"
+        reason: "Witch Blade DoT: 0.75*INT per tick, 4 ticks, CD 9s uptime"
+      witch_blade_slow:
+        formula: "slow * slow_duration / AbilityCooldown"
+        reason: "Witch Blade slow 25% for 4s / 9s CD"
+      magic_corruption:
+        formula: "active_mres_reduction"
+        reason: "Magic Corruption -20% mres, always active on attacked target"
+    ignored_stats:
+      int_damage_multiplier: { reason: "Valued via custom_stats witch_blade_dot" }
+      active_mres_reduction: { reason: "Valued via custom_stats magic_corruption" }
+      passive_cooldown: { reason: "Consumed by custom_stats formulas" }
+      slow: { reason: "Consumed by witch_blade_slow custom_stat" }
+    abilities:
+      - name: "Intelligence Multiplier"
+        type: passive
+        stats:
+          - int_damage_multiplier
+          - slow
+          - slow_duration
+          - active_mres_reduction
+          - passive_cooldown
+          - projectile_speed
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_intellect
+          - bonus_attack_speed
+          - bonus_armor
+          - bonus_mana_regen
+
+  item_urn_of_shadows:
+    custom_stats:
+      soul_release_value:
+        formula: "(soul_heal_amount * duration + soul_damage_amount * duration) / 2 * 0.3"
+        axiom: damage
+        reason: "Soul Release avg total (heal+dmg)/2, charge coeff 0.3"
+    ignored_stats:
+      soul_additional_charges: { reason: "Urn additional charges per kill" }
+      soul_damage_amount: { reason: "Valued via ability_value (charge-based)" }
+      soul_heal_amount: { reason: "Valued via ability_value (charge-based)" }
+      soul_initial_charge: { reason: "Urn initial soul charges" }
+      soul_radius: { reason: "Soul charge acquisition radius" }
+    abilities:
+      - name: "Soul Release"
+        type: active
+        stats:
+          - soul_heal_amount
+          - soul_damage_amount
+          - soul_radius
+          - soul_initial_charge
+          - soul_additional_charges
+          - duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - mana_regen
+          - bonus_armor
+          - bonus_all_stats
+
+  item_tranquil_boots:
+    switchable_stats:
+      bonus_health_regen:
+        multiplier: 0.5
+        reason: "Break disables regen in combat (13s CD). ~50% effective uptime"
+      bonus_movement_speed:
+        multiplier: 0.75
+        reason: "Break reduces MS from 65 to 40 in combat. Weighted average ~75%"
+    ignored_stats:
+      break_count: { reason: "Tranquil Boots break count" }
+      break_threshold: { reason: "Tranquil Boots break threshold" }
+      break_time: { reason: "Tranquil Boots break time" }
+      broken_movement_speed: { reason: "Tranquil Boots broken movement speed" }
+      heal_amount: { reason: "Internal Break mechanic parameter (regen already counted via bonus_health_regen)" }
+      heal_duration: { reason: "Healing over time duration" }
+      heal_interval: { reason: "Healing tick interval" }
+    abilities:
+      - name: "Break"
+        type: passive
+        stats:
+          - heal_amount
+          - heal_duration
+          - heal_interval
+          - break_time
+          - break_count
+          - break_threshold
+          - broken_movement_speed
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_movement_speed
+          - bonus_armor
+          - bonus_health_regen
+
+  item_arcane_boots:
+    uptime_stats:
+      replenish_amount:
+        cooldown_stat: AbilityCooldown
+        reason: "150 mana / 55s CD to team. Priced as aura regen equivalent"
+    comment: "Replenish: 150 mana to allies every 55s. Valued as aura_mana_regen with CD uptime."
+    ignored_stats:
+      replenish_radius: { reason: "Arcane Boots mana restore radius" }
+    abilities:
+      - name: "Replenish"
+        type: active
+        stats:
+          - replenish_amount
+          - replenish_radius
+      - name: "Basilius Aura"
+        type: aura
+        stats:
+          - aura_mana_regen
+          - aura_radius
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_movement
+          - mana_regen
+
+  # -------------------------------------------------------------------------
+  # Batch 17: Guardian Greaves, Bloodstone, Nullifier, Hurricane Pike,
+  #           Radiance, Harpoon, Satanic, Ethereal Blade, Mjollnir, Helm of the Overlord
+  # -------------------------------------------------------------------------
+  item_guardian_greaves:
+    uptime_stats:
+      replenish_health:
+        cooldown_stat: AbilityCooldown
+        stat_as: aura_health_regen
+        reason: "Mend: 325 HP / 45s CD to team. Priced as aura health regen equivalent"
+      replenish_mana:
+        cooldown_stat: AbilityCooldown
+        stat_as: replenish_amount
+        reason: "Mend: 200 mana / 45s CD to team. Priced as aura mana regen equivalent"
+    ignored_stats:
+      aura_bonus_threshold: { reason: "Guardian Greaves HP threshold" }
+      aura_health_regen_bonus: { reason: "Guardian Greaves low HP regen bonus" }
+      max_health_pct_heal_amount: { reason: "Guardian Greaves max HP heal percent" }
+      replenish_radius: { reason: "Arcane Boots mana restore radius" }
+    abilities:
+      - name: "Mend"
+        type: active
+        stats:
+          - replenish_health
+          - replenish_mana
+          - replenish_radius
+          - max_health_pct_heal_amount
+      - name: "Guardian Aura"
+        type: aura
+        stats:
+          - aura_health_regen
+          - aura_mana_regen
+          - aura_radius
+          - aura_health_regen_bonus
+          - aura_bonus_threshold
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_movement
+          - bonus_armor
+          - mana_regen
+
+  item_bloodstone:
+    ability_not_evaluated: true
+    comment: "Bloodpact active (3x spell lifesteal for 5s) not valued — burst healing for spell casters"
+    ignored_stats:
+      bonus_aoe: { reason: "AoE spell radius bonus (Gungir/Bloodstone), utility not priced" }
+      buff_duration: { reason: "Buff effect duration" }
+      hp_cost: { reason: "Bloodstone HP cost" }
+      lifesteal_multiplier: { reason: "Bloodstone lifesteal multiplier" }
+    abilities:
+      - name: "Bloodpact"
+        type: active
+        stats:
+          - buff_duration
+          - lifesteal_multiplier
+          - hp_cost
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_aoe
+          - bonus_health
+          - bonus_mana
+          - bonus_mp_regen
+          - spell_lifesteal
+
+  item_nullifier:
+    ability_not_evaluated: true
+    comment: "Nullify active (mute + continuous dispel + slow) not valued — unique anti-buff mechanic"
+    ignored_stats:
+      mute_duration: { reason: "Nullifier mute effect duration" }
+      slow_interval_duration: { reason: "Nullifier slow reapply interval" }
+      slow_pct: { reason: "Slow percentage" }
+    abilities:
+      - name: "Nullify"
+        type: active
+        stats:
+          - mute_duration
+          - projectile_speed
+          - slow_pct
+          - slow_interval_duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_armor
+          - bonus_regen
+
+  item_radiance:
+    comment: "Burn aura valued via damage_per_second axiom. blind_pct=0 in 7.40c."
+    ignored_stats:
+      aura_damage_illusions: { reason: "Illusion burn DPS — lesser version of main burn" }
+      blind_pct: { reason: "Shows 0 in 7.40c game data" }
+      upgrade_day_vision: { reason: "Radiance day vision bonus" }
+    abilities:
+      - name: "Burn"
+        type: aura
+        stats:
+          - aura_damage
+          - aura_damage_illusions
+          - blind_pct
+          - aura_radius
+          - illusion_multiplier_pct
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - upgrade_day_vision
+          - evasion
+
+  item_harpoon:
+    custom_stats:
+      bonus_attack_speed:
+        formula: "20"
+        comment: "Echo Strike double attack ≈ +20 AS (1 extra atk / 5s CD)"
+    ignored_stats:
+      cast_range_enemy: { reason: "Hurricane Pike enemy cast range" }
+      max_distance: { reason: "Harpoon maximum distance" }
+      min_distance: { reason: "Harpoon minimum distance" }
+      passive_cooldown: { reason: "Passive ability cooldown" }
+      pull_distance_pct: { reason: "Harpoon pull distance percent" }
+      pull_duration: { reason: "Harpoon pull effect duration" }
+    uptime_stats:
+      movement_slow:
+        cooldown_stat: passive_cooldown
+        duration_stat: slow_duration
+        reason: "Echo Strike: 100% slow for 1s / 5s CD"
+    abilities:
+      - name: "Draw Forth"
+        type: active
+        stats:
+          - pull_duration
+          - pull_distance_pct
+          - min_distance
+          - max_distance
+          - cast_range_enemy
+          - push_length
+          - projectile_speed
+      - name: "Echo Strike"
+        type: passive
+        stats:
+          - passive_cooldown
+          - movement_slow
+          - slow_duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_strength
+          - bonus_agility
+          - bonus_intellect
+          - bonus_mana_regen
+
+  item_ethereal_blade:
+    ability_not_evaluated: true
+    comment: "Ether Blast active (attribute nuke + ethereal form + 30% magic amp) not valued — hero attribute-dependent"
+    ignored_stats:
+      blast_damage_base: { reason: "E-Blade blast base damage" }
+      blast_movement_slow: { reason: "E-Blade blast movement slow" }
+      blast_stat_multiplier: { reason: "E-Blade stat damage multiplier" }
+      duration_ally: { reason: "E-Blade ally duration" }
+      ethereal_damage_bonus: { reason: "E-Blade ethereal damage bonus" }
+    abilities:
+      - name: "Ether Blast"
+        type: active
+        stats:
+          - blast_movement_slow
+          - duration
+          - blast_stat_multiplier
+          - blast_damage_base
+          - duration_ally
+          - ethereal_damage_bonus
+          - projectile_speed
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_agility
+          - bonus_strength
+          - bonus_intellect
+
+  item_mjollnir:
+    ability_not_evaluated: true
+    comment: "Chain Lightning proc valued (25% × 180 dmg). Static Charge not valued — reactive proc."
+    ignored_stats:
+      chain_chance: { reason: "Chance modifier for chain_damage (consumed by chance_stat)" }
+      chain_cooldown: { reason: "Chain effect cooldown" }
+      chain_delay: { reason: "Delay between chain bounces" }
+      chain_radius: { reason: "Chain lightning/effect search radius" }
+      chain_strikes: { reason: "Number of chain bounces" }
+      static_chance: { reason: "Static effect proc chance" }
+      static_cooldown: { reason: "Static effect cooldown" }
+      static_damage: { reason: "Static field damage" }
+      static_duration: { reason: "Static field effect duration" }
+      static_primary_radius: { reason: "Mjollnir primary static radius" }
+      static_radius: { reason: "Static field effect radius" }
+      static_seconary_radius: { reason: "Mjollnir secondary static radius" }
+      static_strikes: { reason: "Number of static procs" }
+    abilities:
+      - name: "Static Charge"
+        type: active
+        stats:
+          - static_duration
+          - static_chance
+          - static_strikes
+          - static_damage
+          - static_primary_radius
+          - static_seconary_radius
+          - static_radius
+          - static_cooldown
+          - max_charges
+      - name: "Chain Lightning"
+        type: passive
+        stats:
+          - chain_chance
+          - chain_damage
+          - chain_strikes
+          - chain_radius
+          - chain_delay
+          - chain_cooldown
+          - illusion_multiplier_pct
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_damage
+          - bonus_attack_speed
+
+  item_helm_of_the_overlord:
+    ability_not_evaluated: true
+    comment: "Dominate ability not valued — creep combat value too hero/creep-dependent"
+    ignored_stats:
+      bounty_gold: { reason: "Gold bounty value" }
+      bounty_pct: { reason: "HotD creep bounty percentage" }
+      count_limit: { reason: "HotD dominated creep limit" }
+      creep_ability_level_increase: { reason: "HotD creep ability level increase" }
+      creep_bonus_armor: { reason: "Dominated creep armor" }
+      creep_bonus_hp_regen: { reason: "HotD creep HP regen bonus" }
+      creep_bonus_mp_regen: { reason: "HotD creep mana regen bonus" }
+      creep_damage_taken_cooldown: { reason: "HotD creep damage taken cooldown" }
+      health_min: { reason: "Minimum creep health" }
+      is_overlord: { reason: "Helm of Overlord flag" }
+      speed_base: { reason: "Base creep movement speed" }
+    abilities:
+      - name: "Dominate"
+        type: active
+        stats:
+          - health_min
+          - speed_base
+          - bounty_gold
+          - creep_bonus_damage
+          - creep_bonus_hp_regen
+          - creep_bonus_mp_regen
+          - creep_bonus_armor
+          - model_scale
+          - count_limit
+          - creep_ability_level_increase
+          - is_overlord
+          - creep_damage_taken_cooldown
+          - bounty_pct
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_stats
+          - bonus_armor
+          - bonus_regen
+
+  item_disperser:
+    custom_stats:
+      suppress_slow:
+        formula: "60 * enemy_effect_duration / AbilityCooldown"
+        axiom: bonus_movement_speed_percent
+        comment: "Suppress: avg 60% slow (100→20 decay) × 5s / 15s CD"
+    uptime_stats:
+      phase_movement_speed:
+        cooldown_stat: AbilityCooldown
+        duration_stat: ally_effect_duration
+        reason: "Suppress active: +100 MS for 5s / 15s CD = 33.3% uptime"
+    comment: "Suppress enemy slow valued. Purge/dispel utility not valued."
+    ignored_stats:
+      ally_effect_duration: { reason: "Disperser ally effect duration" }
+      damage_per_burn: { reason: "Diffusal mana burn damage" }
+      enemy_effect_duration: { reason: "Consumed by suppress_slow custom_stat" }
+      feedback_mana_burn_illusion_melee: { reason: "Diffusal illusion mana burn (melee)" }
+      feedback_mana_burn_illusion_ranged: { reason: "Diffusal illusion mana burn (ranged)" }
+      movement_speed_buff_rate: { reason: "Disperser movement speed buff rate" }
+      purge_rate: { reason: "Diffusal purge slow rate" }
+      purge_root_duration: { reason: "Diffusal/Disperser root duration" }
+    abilities:
+      - name: "Suppress"
+        type: active
+        stats:
+          - ally_effect_duration
+          - enemy_effect_duration
+          - movement_speed_buff_rate
+          - phase_movement_speed
+          - purge_rate
+          - purge_root_duration
+          - slow_resist
+      - name: "Manabreak"
+        type: passive
+        stats:
+          - damage_per_burn
+          - feedback_mana_burn
+          - feedback_mana_burn_illusion_melee
+          - feedback_mana_burn_illusion_ranged
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_agility
+          - bonus_intellect
+
+  item_wind_waker:
+    custom_stats:
+      cc_cyclone:
+        formula: "cyclone_duration / sqrt(AbilityCooldown)"
+        comment: "Cyclone (can target allies)"
+    comment: "Ally-save utility (invulnerability) not valued beyond cc_cyclone."
+    ability_not_evaluated: true
+    ignored_stats:
+      cyclone_duration: { reason: "Eul's cyclone effect duration" }
+      tooltip_drop_damage: { reason: "Drop damage tooltip value" }
+      tornado_speed: { reason: "Wind Waker tornado speed" }
+    abilities:
+      - name: "Cyclone"
+        type: active
+        stats:
+          - cyclone_duration
+          - tooltip_drop_damage
+          - tornado_speed
+          - cc_cyclone
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_intellect
+          - bonus_mana_regen
+          - bonus_movement_speed

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patch Comparison - Dota 2 Item Analysis</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #eee;
+    min-height: 100vh;
+    padding: 20px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+h1 { color: #f4d03f; margin-bottom: 10px; font-size: 1.8em; }
+.subtitle { color: #888; margin-bottom: 20px; font-size: 0.9em; }
+a { color: #5dade2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Navigation */
+.nav { margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+.nav a {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 8px 16px;
+    border-radius: 5px;
+    color: #5dade2;
+    transition: background 0.2s;
+}
+.nav a:hover { background: rgba(93, 173, 226, 0.2); text-decoration: none; }
+.nav a.active { background: #5dade2; color: #1a1a2e; }
+
+/* Stats cards */
+.stats-row {
+    display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.stat-card {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 12px 20px; border-radius: 8px;
+    border-left: 4px solid #5dade2;
+}
+.stat-card.overvalued { border-left-color: #27a95d; }
+.stat-card.undervalued { border-left-color: #e74c3c; }
+.stat-card.fair { border-left-color: #86cef3; }
+.stat-value { font-size: 22px; font-weight: bold; }
+.stat-label { font-size: 11px; color: #aaa; text-transform: uppercase; }
+
+/* Tables */
+.table-container { overflow-x: auto; margin-bottom: 20px; }
+table { border-collapse: collapse; width: 100%; background: rgba(26, 26, 46, 0.9); }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; }
+th {
+    background: #2d3436;
+    color: #f4d03f;
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+}
+th:hover { background: #3d4446; }
+th.sorted-asc::after { content: ' \25B2'; font-size: 0.7em; }
+th.sorted-desc::after { content: ' \25BC'; font-size: 0.7em; }
+tr:hover { background: rgba(93, 173, 226, 0.1); }
+.text-muted { color: #888; font-size: 0.85em; }
+.text-green { color: #27a95d; }
+.text-red { color: #e74c3c; }
+.text-yellow { color: #86cef3; }
+.text-blue { color: #5dade2; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    h1 { font-size: 1.4em; }
+    .stats-row { flex-direction: column; }
+    th, td { padding: 8px; font-size: 0.9em; }
+}
+
+.controls {
+    display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.controls select {
+    background: rgba(45, 52, 54, 0.8); color: #5dade2; border: 1px solid #555;
+    padding: 8px 12px; border-radius: 5px; font-size: 1em; cursor: pointer;
+}
+.controls select:hover { background: rgba(93, 173, 226, 0.2); }
+.controls button {
+    background: #5dade2; color: #1a1a2e; border: none;
+    padding: 8px 20px; border-radius: 5px; cursor: pointer;
+    font-size: 1em; font-weight: bold;
+}
+.controls button:hover { background: #3498db; }
+.controls label { color: #aaa; }
+#message { color: #f4d03f; margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Patch Comparison</h1>
+    <p class="subtitle">Compare effective costs between patches</p>
+    <div class="nav">
+        <a href="index.html">Chart</a>
+        <a href="comparison.html" class="active">Comparison</a>
+    </div>
+
+    <div id="content"></div>
+</div>
+
+<script src="patches.js"></script>
+<script>
+function init() {
+    var el = document.getElementById('content');
+
+    if (typeof PATCHES_LIST === 'undefined' || PATCHES_LIST.length < 2) {
+        el.innerHTML = '<p id="message">Comparison requires at least 2 published patches.</p>';
+        return;
+    }
+
+    var optionsA = '', optionsB = '';
+    for (var i = PATCHES_LIST.length - 1; i >= 0; i--) {
+        var selA = (i === PATCHES_LIST.length - 2) ? ' selected' : '';
+        var selB = (i === PATCHES_LIST.length - 1) ? ' selected' : '';
+        optionsA += '<option value="' + PATCHES_LIST[i] + '"' + selA + '>Patch ' + PATCHES_LIST[i] + '</option>';
+        optionsB += '<option value="' + PATCHES_LIST[i] + '"' + selB + '>Patch ' + PATCHES_LIST[i] + '</option>';
+    }
+
+    el.innerHTML =
+        '<div class="controls">' +
+        '<label>Old:</label><select id="patchA">' + optionsA + '</select>' +
+        '<label>New:</label><select id="patchB">' + optionsB + '</select>' +
+        '<button onclick="compare()">Compare</button>' +
+        '</div>' +
+        '<div id="results"></div>';
+
+    compare();
+}
+
+function loadPatchData(version) {
+    return new Promise(function(resolve, reject) {
+        var oldScript = document.getElementById('patchDataScript');
+        if (oldScript) oldScript.remove();
+
+        var script = document.createElement('script');
+        script.id = 'patchDataScript';
+        script.src = 'patch_' + version + '/data.js';
+        script.onload = function() {
+            resolve(structuredClone(window.PATCH_DATA));
+        };
+        script.onerror = function() {
+            reject(new Error('Failed to load patch ' + version));
+        };
+        document.head.appendChild(script);
+    });
+}
+
+async function compare() {
+    var patchA = document.getElementById('patchA').value;
+    var patchB = document.getElementById('patchB').value;
+    var results = document.getElementById('results');
+
+    if (patchA === patchB) {
+        results.innerHTML = '<p id="message">Select two different patches to compare.</p>';
+        return;
+    }
+
+    results.innerHTML = '<p id="message">Loading...</p>';
+
+    try {
+        var dataA = await loadPatchData(patchA);
+        var dataB = await loadPatchData(patchB);
+    } catch (e) {
+        results.innerHTML = '<p id="message">Error: ' + e.message + '</p>';
+        return;
+    }
+
+    var mapA = {};
+    dataA.items.forEach(function(item) { mapA[item.id] = item; });
+    var mapB = {};
+    dataB.items.forEach(function(item) { mapB[item.id] = item; });
+
+    var allIds = new Set([...Object.keys(mapA), ...Object.keys(mapB)]);
+
+    var rows = [];
+    allIds.forEach(function(id) {
+        var a = mapA[id];
+        var b = mapB[id];
+        var row = { id: id };
+
+        if (a && b) {
+            row.name = b.name;
+            row.effOld = a.effective_cost;
+            row.effNew = b.effective_cost;
+            row.realOld = a.real_cost;
+            row.realNew = b.real_cost;
+            row.changePct = b.effective_cost !== 0
+                ? ((b.effective_cost - a.effective_cost) / b.effective_cost) * 100
+                : 0;
+            row.status = 'both';
+        } else if (b) {
+            row.name = b.name;
+            row.effNew = b.effective_cost;
+            row.realNew = b.real_cost;
+            row.changePct = 0;
+            row.status = 'new';
+        } else {
+            row.name = a.name;
+            row.effOld = a.effective_cost;
+            row.realOld = a.real_cost;
+            row.changePct = 0;
+            row.status = 'removed';
+        }
+
+        rows.push(row);
+    });
+
+    rows.sort(function(a, b) { return Math.abs(b.changePct) - Math.abs(a.changePct); });
+
+    var html = '<div class="table-container"><table>';
+    html += '<thead><tr>' +
+        '<th>Item</th>' +
+        '<th>Change %</th>' +
+        '<th>Eff. Cost (' + patchA + ')</th>' +
+        '<th>Eff. Cost (' + patchB + ')</th>' +
+        '<th>Real Cost (' + patchA + ')</th>' +
+        '<th>Real Cost (' + patchB + ')</th>' +
+        '</tr></thead><tbody>';
+
+    rows.forEach(function(row) {
+        var changeStr, changeClass;
+        if (row.status === 'new') {
+            changeStr = 'NEW';
+            changeClass = 'text-blue';
+        } else if (row.status === 'removed') {
+            changeStr = 'REMOVED';
+            changeClass = 'text-muted';
+        } else {
+            changeStr = (row.changePct >= 0 ? '+' : '') + row.changePct.toFixed(1) + '%';
+            changeClass = row.changePct > 0 ? 'text-green' : (row.changePct < 0 ? 'text-red' : '');
+        }
+
+        html += '<tr>';
+        html += '<td>' + row.name + '</td>';
+        html += '<td class="' + changeClass + '">' + changeStr + '</td>';
+        html += '<td>' + (row.effOld != null ? row.effOld.toFixed(1) : '-') + '</td>';
+        html += '<td>' + (row.effNew != null ? row.effNew.toFixed(1) : '-') + '</td>';
+        html += '<td>' + (row.realOld != null ? row.realOld : '-') + '</td>';
+        html += '<td>' + (row.realNew != null ? row.realNew : '-') + '</td>';
+        html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    var changed = rows.filter(function(r) { return r.status === 'both' && Math.abs(r.changePct) > 0.05; }).length;
+    var added = rows.filter(function(r) { return r.status === 'new'; }).length;
+    var removed = rows.filter(function(r) { return r.status === 'removed'; }).length;
+
+    var summary = '<div class="stats-row">';
+    summary += '<div class="stat-card"><div class="stat-value">' + rows.length + '</div><div class="stat-label">Total Items</div></div>';
+    summary += '<div class="stat-card"><div class="stat-value">' + changed + '</div><div class="stat-label">Changed</div></div>';
+    if (added > 0) summary += '<div class="stat-card"><div class="stat-value">' + added + '</div><div class="stat-label">New</div></div>';
+    if (removed > 0) summary += '<div class="stat-card"><div class="stat-value">' + removed + '</div><div class="stat-label">Removed</div></div>';
+    summary += '</div>';
+
+    results.innerHTML = summary + html;
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+pandas
+openpyxl
+matplotlib
+numpy
+requests
+beautifulsoup4
+PyYAML
+
+# dev
+black
+isort
+mypy
+pytest
+types-requests
+types-beautifulsoup4
+types-PyYAML

@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+src/venv/
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files only (output/ is tracked!)
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+todo.txt

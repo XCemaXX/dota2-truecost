@@ -1,0 +1,69 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #eee;
+    min-height: 100vh;
+    padding: 20px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+h1 { color: #f4d03f; margin-bottom: 10px; font-size: 1.8em; }
+.subtitle { color: #888; margin-bottom: 20px; font-size: 0.9em; }
+a { color: #5dade2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Navigation */
+.nav { margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+.nav a {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 8px 16px;
+    border-radius: 5px;
+    color: #5dade2;
+    transition: background 0.2s;
+}
+.nav a:hover { background: rgba(93, 173, 226, 0.2); text-decoration: none; }
+.nav a.active { background: #5dade2; color: #1a1a2e; }
+
+/* Stats cards */
+.stats-row {
+    display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.stat-card {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 12px 20px; border-radius: 8px;
+    border-left: 4px solid #5dade2;
+}
+.stat-card.overvalued { border-left-color: #27a95d; }
+.stat-card.undervalued { border-left-color: #e74c3c; }
+.stat-card.fair { border-left-color: #86cef3; }
+.stat-value { font-size: 22px; font-weight: bold; }
+.stat-label { font-size: 11px; color: #aaa; text-transform: uppercase; }
+
+/* Tables */
+.table-container { overflow-x: auto; margin-bottom: 20px; }
+table { border-collapse: collapse; width: 100%; background: rgba(26, 26, 46, 0.9); }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; }
+th {
+    background: #2d3436;
+    color: #f4d03f;
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+}
+th:hover { background: #3d4446; }
+th.sorted-asc::after { content: ' \25B2'; font-size: 0.7em; }
+th.sorted-desc::after { content: ' \25BC'; font-size: 0.7em; }
+tr:hover { background: rgba(93, 173, 226, 0.1); }
+.text-muted { color: #888; font-size: 0.85em; }
+.text-green { color: #27a95d; }
+.text-red { color: #e74c3c; }
+.text-yellow { color: #86cef3; }
+.text-blue { color: #5dade2; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    h1 { font-size: 1.4em; }
+    .stats-row { flex-direction: column; }
+    th, td { padding: 8px; font-size: 0.9em; }
+}

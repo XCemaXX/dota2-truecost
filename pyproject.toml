@@ -1,0 +1,42 @@
+[project]
+name = "dota2-truecost"
+description = "Scripts for computing effective cost of Dota 2 items"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "pandas",
+    "openpyxl",
+    "matplotlib",
+    "numpy",
+    "requests",
+    "beautifulsoup4",
+    "PyYAML",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "mypy",
+    "pytest",
+    "types-requests",
+    "types-beautifulsoup4",
+    "types-PyYAML",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

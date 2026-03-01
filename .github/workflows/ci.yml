@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r src/requirements.txt
+      - name: black --check
+        run: black --check src/ tests/ analyse_patch.py
+      - name: isort --check
+        run: isort --check src/ tests/ analyse_patch.py
+      - name: mypy
+        run: mypy src/ --ignore-missing-imports
+      - name: Run pipeline
+        run: python analyse_patch.py
+      - name: pytest
+        run: python -m pytest tests/ -v
