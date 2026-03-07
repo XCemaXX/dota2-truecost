@@ -93,11 +93,16 @@ def main():
 
     # Write output
     logger.info("\n[4/4] Writing calculated_axioms.json...")
+    settings_out = {
+        k: {"value": m.value, "name": m.name, "comment": m.comment}
+        for k, m in rules.settings_meta.items()
+    }
     output = {
         "version": rules.version,
         "patch": rules.patch,
         "generated_at": datetime.now().isoformat(),
         "total_axioms": len(resolved),
+        "settings": settings_out,
         "axioms": resolved_to_dict(resolved),
         "warnings": warnings,
     }

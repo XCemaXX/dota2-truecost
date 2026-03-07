@@ -36,6 +36,7 @@ Technical config (stat normalization, global ignored stats) is in `src/axioms/ax
 
 ```bash
 cp /path/to/new/items.txt data/items_7.50.txt
+python3 -m venv src/venv && source src/venv/bin/activate && pip install -r src/requirements.txt
 source src/venv/bin/activate
 python analyse_patch.py --version 7.50
 ```

@@ -48,6 +48,7 @@ class CalculationTrace:
 
     method: str
     formula: str = ""
+    formula_symbolic: str = ""
     reference_item: str | None = None
     item_cost: float | None = None
     stat_value: float | None = None
@@ -177,6 +178,7 @@ def calculate_reference_item(
 
     # Subtract stats if specified
     subtracted_value = 0.0
+    subtracted_parts: list[str] = []  # symbolic: ["stat_name × value"]
     dependencies = []
 
     if axiom.subtract_stats:
@@ -199,6 +201,8 @@ def calculate_reference_item(
             dependencies.append(sub_stat)
             gold_per_point = resolved_axioms[sub_stat].gold_per_point
             subtracted_value += sub_stat_value * gold_per_point
+            sub_display = resolved_axioms[sub_stat].display_name
+            subtracted_parts.append(f"{sub_display}({sub_stat_value:g}) × {gold_per_point:g}g")
 
     effective_cost = item_cost - subtracted_value
 
@@ -224,7 +228,7 @@ def calculate_reference_item(
         if chance_value > 0:
             gold_per_point = gold_per_point / (chance_value / 100.0)
 
-    # Build formula string
+    # Build numeric formula string
     if axiom.subtract_stats and subtracted_value > 0:
         formula = f"({item_cost} - {subtracted_value:.1f}) / {stat_value}"
     else:
@@ -238,9 +242,27 @@ def calculate_reference_item(
 
     formula += f" = {gold_per_point:.2f}"
 
+    # Build symbolic formula string
+    ref_name = ref_item_id.replace("item_", "").replace("_", " ").title()
+    stat_display = axiom.display_name or stat_key
+    if subtracted_parts:
+        subtract_str = " + ".join(subtracted_parts)
+        formula_sym = f"({ref_name}({item_cost:g}g) - {subtracted_value:g}g [{subtract_str}]) / {stat_display}({stat_value:g})"
+    else:
+        formula_sym = f"{ref_name}({item_cost:g}g) / {stat_display}({stat_value:g})"
+
+    if uptime_multiplier < 1.0:
+        formula_sym += f" × uptime({uptime_multiplier:.2f})"
+
+    if chance_value and chance_value > 0:
+        formula_sym += f" / chance({chance_value:g}%)"
+
+    formula_sym += f" = {gold_per_point:.2f}"
+
     trace = CalculationTrace(
         method="reference_item",
         formula=formula,
+        formula_symbolic=formula_sym,
         reference_item=ref_item_id,
         item_cost=item_cost,
         stat_value=stat_value,
@@ -255,6 +277,7 @@ def calculate_formula(
     axiom: Axiom,
     resolved_axioms: dict[str, ResolvedAxiom],
     settings: dict[str, Any] | None = None,
+    settings_meta: dict | None = None,
 ) -> tuple[float, CalculationTrace, list[str]]:
     """
     Calculate gold_per_point using formula.
@@ -273,9 +296,24 @@ def calculate_formula(
 
     gold_per_point = eval_formula(formula, resolved_axioms, settings)
 
+    # Build symbolic formula: replace axiom names with DisplayName(value)
+    def replace_with_display(m):
+        name = m.group(0)
+        if name in resolved_axioms:
+            ra = resolved_axioms[name]
+            return f"{ra.display_name}({ra.gold_per_point:g}g)"
+        if settings and name in settings:
+            display = settings_meta[name].name if settings_meta and name in settings_meta else name
+            return f"{display}({settings[name]:g})"
+        return name
+
+    formula_sym = re.sub(r"\b([a-z_][a-z0-9_]*)\b", replace_with_display, formula)
+    formula_sym += f" = {gold_per_point:.2f}"
+
     trace = CalculationTrace(
         method="formula",
         formula=f"{formula} = {gold_per_point:.2f}",
+        formula_symbolic=formula_sym,
     )
 
     return gold_per_point, trace, dependencies
@@ -313,9 +351,13 @@ def calculate_amplification(
     # 1% amplification = base_value * expected_base * 0.01
     gold_per_point = base_value * expected_base * 0.01
 
+    base_display = resolved_axioms[base_name].display_name
+    meta = getattr(rules, "settings_meta", None)
+    expected_display = meta[expected_key].name if meta and expected_key in meta else expected_key
     trace = CalculationTrace(
         method="amplification_of",
         formula=f"{base_value:.2f} * {expected_base} * 0.01 = {gold_per_point:.2f}",
+        formula_symbolic=f"{base_display}({base_value:.2f}g) × {expected_display}({expected_base:g}) × 0.01 = {gold_per_point:.2f}",
         base_axiom=base_name,
         base_value=base_value,
         expected_base=expected_base,
@@ -382,7 +424,9 @@ def calculate_axiom(
         elif method == "formula":
             # Merge settings + expected_bases so formulas can reference both
             formula_vars = {**rules.settings, **rules.expected_bases}
-            gold_per_point, trace, deps = calculate_formula(axiom, resolved_axioms, formula_vars)
+            gold_per_point, trace, deps = calculate_formula(
+                axiom, resolved_axioms, formula_vars, getattr(rules, "settings_meta", None)
+            )
         elif method == "amplification_of":
             gold_per_point, trace, deps = calculate_amplification(axiom, resolved_axioms, rules)
         elif method == "manual":
@@ -537,6 +581,8 @@ def resolved_to_dict(resolved: dict[str, ResolvedAxiom]) -> dict[str, Any]:
             "method": calc.method,
             "formula": calc.formula,
         }
+        if calc.formula_symbolic:
+            calc_dict["formula_symbolic"] = calc.formula_symbolic
 
         # Add method-specific fields
         if calc.reference_item:

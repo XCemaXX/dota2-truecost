@@ -4,30 +4,73 @@ version: "1.0"
 patch: "7.40c"
 
 # Settings — named constants for pipeline and formulas
+# Each setting can be a plain value or a dict with {value, name, comment}
 settings:
   # Pipeline
-  max_resolution_iterations: 10
+  max_resolution_iterations:
+    value: 10
+    name: "Max Iterations"
+    comment: "Maximum axiom resolution iterations"
 
   # Gameplay coefficients
-  cooldown_efficiency: 0.75  # Multiplier for CD-based abilities (0.75 = realistic usage)
-  aura_avg_targets: 1.5  # Average heroes affected by aura
-  armor_damage_factor: 0.06  # Dota 2 armor constant: each armor reduces phys dmg by ~6%
+  cooldown_efficiency:
+    value: 0.75
+    name: "CD Efficiency"
+    comment: "Multiplier for CD-based abilities (0.75 = realistic usage)"
+  aura_avg_targets:
+    value: 1.5
+    name: "Avg Aura Targets"
+    comment: "Average heroes affected by aura"
+  armor_damage_factor:
+    value: 0.06
+    name: "Armor Factor"
+    comment: "Dota 2 armor constant: each armor reduces phys dmg by ~6%"
 
   # Expected hero values (for formulas and amplification calculations)
-  expected_hp_regen: 10        # STR hero base at Sange timing (~8-12 HP/sec total)
-  expected_mana_regen: 4       # INT hero at Kaya purchase (~4-5 mana/sec total)
-  expected_attack_damage: 200   # Carry hero total damage at crit item timing (~level 15-20)
-  expected_mana_pool: 780       # INT hero base mana at Null Talisman timing (~level 7)
-  expected_move_speed: 365      # Base hero MS (~315) + boots (~50)
-  expected_physical_damage: 150  # Average physical attack damage in midgame
-  expected_missing_hp: 900       # STR hero at Heart timing: ~3000 HP, ~30% missing avg
-  expected_enemy_hp: 3000         # Average enemy hero HP for %HP drain calculations
-  permanent_dmg_uptime_during_whole_game: 0.20  # % of game time persistent damage hits enemies
+  expected_hp_regen:
+    value: 10
+    name: "Expected HP Regen"
+    comment: "STR hero base at Sange timing (~8-12 HP/sec total)"
+  expected_mana_regen:
+    value: 4
+    name: "Expected Mana Regen"
+    comment: "INT hero at Kaya purchase (~4-5 mana/sec total)"
+  expected_attack_damage:
+    value: 200
+    name: "Expected Attack Damage"
+    comment: "Carry hero total damage at crit item timing (~level 15-20)"
+  expected_mana_pool:
+    value: 780
+    name: "Expected Mana Pool"
+    comment: "INT hero base mana at Null Talisman timing (~level 7)"
+  expected_move_speed:
+    value: 365
+    name: "Expected Move Speed"
+    comment: "Base hero MS (~315) + boots (~50)"
+  expected_physical_damage:
+    value: 150
+    name: "Expected Phys Damage"
+    comment: "Average physical attack damage in midgame"
+  expected_missing_hp:
+    value: 900
+    name: "Expected Missing HP"
+    comment: "STR hero at Heart timing: ~3000 HP, ~30% missing avg"
+  expected_enemy_hp:
+    value: 3000
+    name: "Expected Enemy HP"
+    comment: "Average enemy hero HP for %HP drain calculations"
+  permanent_dmg_uptime_during_whole_game:
+    value: 0.20
+    name: "Persistent DMG Uptime"
+    comment: "% of game time persistent damage hits enemies"
 
-  # CC disable: gold per "normalized second" of disable.
-  # Items compute cc_stat = duration / sqrt(cooldown), axiom prices it.
-  # Formula: cc_value = (duration / sqrt(CD)) × base_disable_gold × type_coeff
-  base_disable_gold: 2000
+  base_disable_gold:
+    value: 2000
+    name: "Base Disable Gold"
+    comment: |
+      Gold per normalized second of disable.
+      Items compute cc_stat = duration / sqrt(cooldown), axiom prices it.
+      Formula: cc_value = (duration / sqrt(CD)) × base_disable_gold × type_coeff
 
 # =============================================================================
 # AXIOMS - Main stat pricing definitions
@@ -82,7 +125,7 @@ axioms:
     display_name: "All Stats"
     category: attributes
     comment: |
-      +1 all stats = +1 STR + +1 AGI + +1 INT. Average of three: (100+100+100)/3 = 100 g/pt
+      +1 all stats = +1 STR + +1 AGI + +1 INT. Average of three
 
   bonus_health:
     method: reference_item
@@ -98,7 +141,7 @@ axioms:
     reference_item: item_energy_booster
     stat: bonus_mana
     display_name: "Mana"
-    category: sustain
+    category: utility
     comment: |
       Cheapest pure mana pool item. Builds into Arcane Boots and major mana items
 
@@ -170,7 +213,7 @@ axioms:
     formula: "bonus_movement_speed * expected_move_speed / 100"
     display_name: "Movement Speed %"
     category: movement
-    comment: "1% MS = 3.65 flat MS (base 315 + boots 50). Via flat MS axiom."
+    comment: "1% MS converted via flat MS axiom and expected move speed."
 
   displacement:
     method: reference_item
@@ -178,7 +221,7 @@ axioms:
     stat: blink_range
     display_name: "Displacement"
     category: movement
-    comment: "Blink Dagger: 2250g / 1200 units = 1.875 g/unit"
+    comment: "Blink Dagger as reference for displacement per unit"
 
   bonus_evasion:
     method: reference_item
@@ -210,14 +253,14 @@ axioms:
     display_name: "Cast Range"
     category: utility
     comment: |
-      Aether Lens 2275g: mana 300 (960g) + mana_regen 2.5 (625g). Remainder: 690g / 225 = 3.07 g/pt
+      Aether Lens minus mana and mana regen stats. Remainder divided by cast range
 
   bonus_movement_speed_percent:
     method: reference_item
     reference_item: item_boots
     stat: bonus_movement_speed
     display_name: "Movement Speed %"
-    category: mobility
+    category: movement
     comment: |
       Boots of Speed is the foundational movement item. Converted from flat MS to percent using base MS
 
@@ -225,15 +268,15 @@ axioms:
     method: formula
     formula: "bonus_movement_speed"
     display_name: "Phase Movement Speed"
-    category: mobility
+    category: movement
     comment: |
-      Temporary MS bonus = bonus_movement_speed (11.11 g/pt). Uptime applied at item level via uptime_stats
+      Temporary MS bonus = bonus_movement_speed. Uptime applied at item level via uptime_stats
 
   phase_movement_speed_range:
     method: formula
     formula: "bonus_movement_speed"
     display_name: "Phase Movement Speed (Ranged)"
-    category: mobility
+    category: movement
     comment: |
       Same as phase_movement_speed but for ranged heroes. Uptime applied at item level
 
@@ -268,7 +311,7 @@ axioms:
     display_name: "Mana Burn"
     category: offense
     comment: |
-      Mana burn = physical damage per hit + mana drain. Priced as bonus_damage (50 g/pt)
+      Mana burn = physical damage per hit + mana drain. Priced as bonus_damage
 
   damage_reflection_pct:
     method: formula
@@ -278,7 +321,6 @@ axioms:
     comment: |
       1% reflected damage = expected_physical_damage/100 flat damage per hit received.
       Halved (x0.5) because reflection only works when being attacked, not always.
-      150/100 * 50 / 2 = 37.5 g/pt per 1% reflection.
 
   absorb_amount:
     method: formula
@@ -351,7 +393,7 @@ axioms:
     display_name: "Mana Regen Aura"
     category: aura
     comment: |
-      Was ref Basilius (362.5 g/pt). Now formula: 250 × 1.5 = 375 g/pt
+      Personal mana regen scaled by avg aura targets
 
   aura_health_regen:
     method: formula
@@ -359,7 +401,7 @@ axioms:
     display_name: "Health Regen Aura"
     category: aura
     comment: |
-      Was ref Headdress (177.5 g/pt). Now formula: 140 × 1.5 = 210 g/pt
+      Personal HP regen scaled by avg aura targets
 
   bonus_aoe_armor:
     method: formula
@@ -367,7 +409,7 @@ axioms:
     display_name: "Armor Aura"
     category: aura
     comment: |
-      Was ref Buckler (143.75 g/pt). Now formula: 137.5 × 1.5 = 206.25 g/pt
+      Personal armor scaled by avg aura targets
 
   bonus_cooldown:
     method: reference_item
@@ -380,7 +422,7 @@ axioms:
       - bonus_mana
       - bonus_mana_regen
     comment: |
-      Octarine 4900g - stats = remaining / 25%
+      Octarine Core minus stats. Remainder divided by cooldown reduction
 
   # crit_chance and crit_multiplier REMOVED - compound mechanic
   # Crit is valued via ability_value per item (expected DPS increase)
@@ -405,8 +447,7 @@ axioms:
     expected_base_key: expected_hp_regen
     display_name: "HP Regen Amplification"
     category: amplification
-    comment: |
-      Amplifies HP regen. Expected base from expected_bases section
+    comment: "Amplifies HP regen"
 
   mana_regen_multiplier:
     method: amplification_of
@@ -414,8 +455,7 @@ axioms:
     expected_base_key: expected_mana_regen
     display_name: "Mana Regen Multiplier"
     category: amplification
-    comment: |
-      Amplifies mana regen. Expected base from expected_bases section
+    comment: "Amplifies mana regen"
 
   crit_expected_dps:
     method: amplification_of
@@ -424,7 +464,7 @@ axioms:
     display_name: "Crit Expected DPS"
     category: amplification
     comment: |
-      Expected DPS increase from crit. 1% DPS = 50 × 200 × 0.01 = 100g.
+      Expected DPS increase from crit.
       Used with custom_stats formula: crit_chance/100 * (crit_multiplier - 100).
 
   missing_health_regen:
@@ -434,8 +474,7 @@ axioms:
     display_name: "Missing HP Regen"
     category: amplification
     comment: |
-      1% missing HP regen = 0.01 × 900 missing HP × 140g = 1260g.
-      Expected 900 missing HP = 30% of 3000 HP STR hero at Heart timing.
+      1% missing HP regen
 
   # -------------------------------------------------------------------------
   # Manual Axioms - Direct values with explanations
@@ -445,8 +484,8 @@ axioms:
     method: formula
     formula: "1500 / 90"
     display_name: "Bonus Gold"
-    category: offense
-    comment: "1500s avg game / 90s AbilityChargeRestoreTime = 16.67 uses per game."
+    category: utility
+    comment: "Average game time / charge restore time = uses per game"
 
   replenish_amount:
     method: formula
@@ -461,7 +500,7 @@ axioms:
     formula: "bonus_armor / expected_physical_damage / armor_damage_factor"
     display_name: "Block Damage (Melee)"
     category: defense
-    comment: "1 block = 1/9 armor equiv (150 avg dmg, 6% per armor). Chance applied separately."
+    comment: "1 block = armor equivalent via expected phys damage and armor factor. Chance applied separately."
 
   block_damage_ranged:
     method: formula
@@ -484,8 +523,8 @@ axioms:
     display_name: "Negative Attack Speed Aura"
     category: aura
     comment: |
-      Mirror of positive AS aura. Negative g/pt because stat value is negative (-45 on Shiva's).
-      -45 * -33.75 = +1518.75g (debuff on enemies = benefit)
+      Mirror of positive AS aura. Negative g/pt because stat value is negative.
+      Debuff on enemies = benefit
 
   aura_positive_armor:
     method: formula
@@ -493,7 +532,7 @@ axioms:
     display_name: "Positive Armor Aura"
     category: aura
     comment: |
-      Same effect as bonus_aoe_armor (Buckler aura). Different stat name in Assault Cuirass.
+      Same effect as Armor Aura. Different stat name in Assault Cuirass.
 
   aura_negative_armor:
     method: formula
@@ -501,7 +540,7 @@ axioms:
     display_name: "Negative Armor Aura"
     category: aura
     comment: |
-      Mirror of positive armor aura. Negative gold_per_point because stat value is negative (-5 on Assault)
+      Mirror of positive armor aura. Negative g/pt because stat value is negative
 
   penalty_armor:
     method: formula
@@ -525,7 +564,7 @@ axioms:
     display_name: "Lifesteal Aura"
     category: aura
     comment: |
-      Vladmir: lifesteal aura 20%, ~50g x 2 (aura)
+      Lifesteal scaled by avg aura targets
 
   damage_aura:
     method: formula
@@ -533,8 +572,7 @@ axioms:
     display_name: "Damage Aura"
     category: aura
     comment: |
-      Percentage-based aura: 1% damage = expected_attack_damage/100 flat damage per target.
-      18% x 200/100 x 1.5 targets x 50 g/pt = 150 g/pt
+      Percentage-based aura: 1% damage = expected_attack_damage/100 flat damage per target
 
   slow_resistance:
     method: reference_item
@@ -546,7 +584,7 @@ axioms:
     display_name: "Slow Resistance"
     category: defense
     comment: |
-      Sange 2100g: 16 STR + 16% hp_regen_amp + 20% slow resist. Remainder / 20
+      Sange minus STR and hp_regen_amp. Remainder divided by slow resist
 
   spell_amp:
     method: reference_item
@@ -556,9 +594,9 @@ axioms:
       - bonus_intellect
       - mana_regen_multiplier
     display_name: "Spell Amplification"
-    category: offense
+    category: utility
     comment: |
-      Kaya 2100g: 16 INT + 40% mana_regen_mult + 10% spell amp. Remainder / 10
+      Kaya minus INT and mana regen multiplier. Remainder divided by spell amp
 
   # bash_chance_melee, bash_chance_ranged, bash_duration REMOVED
   # Bash chance is a modifier, not independently valued
@@ -618,8 +656,8 @@ axioms:
     display_name: "Spell Damage"
     category: offense
     comment: |
-      Flat magic damage proc. 1 damage = 1 HP removed = 4 g/pt (same as bonus_health axiom).
-      Used with uptime_stats for cooldown-based procs (Angel's Demise 250 dmg / 9s CD).
+      Flat magic damage proc. 1 damage = 1 HP removed.
+      Used with uptime_stats for cooldown-based procs.
 
   restore_per_charge:
     method: formula
@@ -633,9 +671,9 @@ axioms:
     method: formula
     formula: "hp_regen_amp"
     display_name: "Heal Reduction"
-    category: offense
+    category: debuff
     comment: |
-      Lower bound: 1% heal reduction >= 1% HP regen amp (14g).
+      Lower bound: 1% heal reduction >= 1% HP regen amp.
       Actual value higher since heal reduction also affects lifesteal, salves, etc.
 
   bonus_night_vision:
@@ -647,7 +685,7 @@ axioms:
     display_name: "Night Vision"
     category: special
     comment: |
-      Moon Shard 4000g: 140 AS + 400 night vision. Remainder / 400
+      Moon Shard minus attack speed. Remainder divided by night vision
 
   bonus_stat:
     method: formula
@@ -655,7 +693,7 @@ axioms:
     display_name: "Switchable Attribute"
     category: special
     comment: |
-      Switchable attribute (STR/AGI/INT) = 100g, not all_stats! (Power Treads)
+      Switchable attribute (STR/AGI/INT), not all_stats! (Power Treads)
 
   int_damage:
     method: formula
@@ -677,7 +715,7 @@ axioms:
     method: formula
     formula: "-1 * bonus_movement_speed_percent"
     display_name: "Movement Slow"
-    category: offense
+    category: disable
     comment: |
       Slowing enemy = speeding self. Valve stores as negative, invert sign.
 
@@ -685,7 +723,7 @@ axioms:
     method: formula
     formula: "-1 * bonus_attack_speed"
     display_name: "Cold AS Slow (Melee)"
-    category: offense
+    category: disable
     comment: |
       Skadi melee AS slow. Negative in data, inverted formula.
 
@@ -693,7 +731,7 @@ axioms:
     method: formula
     formula: "-1 * bonus_attack_speed"
     display_name: "Cold AS Slow (Ranged)"
-    category: offense
+    category: disable
     comment: |
       Skadi ranged AS slow. Negative in data, inverted formula.
 
@@ -712,7 +750,7 @@ axioms:
     display_name: "Max Mana %"
     category: amplification
     comment: |
-      Percentage increase to max mana pool. 3.2 × 780 × 0.01 = 24.96g per 1%.
+      Percentage increase to max mana pool
 
   manacost_reduction:
     method: formula
@@ -720,7 +758,7 @@ axioms:
     display_name: "Mana Cost Reduction"
     category: utility
     comment: |
-      1% mana cost reduction ≈ 1% more effective mana pool (24.96 g/pt).
+      1% mana cost reduction ≈ 1% more effective mana pool
 
 
   # -------------------------------------------------------------------------
@@ -749,7 +787,7 @@ axioms:
     display_name: "Magic Resistance Aura"
     category: derived
     comment: |
-      Aura magic resist = 2x personal (self + allies)
+      Personal magic resist scaled by avg aura targets
 
   aura_movement_speed:
     method: formula
@@ -757,14 +795,14 @@ axioms:
     display_name: "Movement Speed Aura"
     category: derived
     comment: |
-      Aura MS = 2x personal (Drum of Endurance)
+      Personal MS scaled by avg aura targets (Drum of Endurance)
 
   aura_movement_speed_pct:
     method: formula
     formula: "bonus_movement_speed_pct * aura_avg_targets"
     display_name: "Movement Speed % Aura"
     category: derived
-    comment: "Aura % MS = 2x personal. For team active buffs (Drums, BoB)."
+    comment: "Personal % MS scaled by avg aura targets. For team active buffs (Drums, BoB)."
 
   # -------------------------------------------------------------------------
   # Anti-Heal / Restoration Reduction
@@ -776,17 +814,15 @@ axioms:
     display_name: "Heal Reduction Aura %"
     category: aura
     comment: |
-      1% heal reduction on enemies = expected_hp_regen/100 × hp_regen g/pt × targets.
-      25% on Shiva's: 25 × 10/100 × 140 × 1.5 = 525g (21 g/1%)
+      1% heal reduction on enemies, scaled by expected HP regen and avg aura targets
 
   restoration_reduction_enemy:
     method: formula
     formula: "bonus_health_regen * expected_hp_regen / 100"
     display_name: "Heal Reduction (single target) %"
-    category: offense
+    category: debuff
     comment: |
-      Single-target heal reduction. No aura multiplier.
-      1% = 140 × 10 / 100 = 14 g/pt. Spirit Vessel 70%: uptime applied separately.
+      Single-target heal reduction. No aura multiplier. Spirit Vessel 70%: uptime applied separately.
 
   # -------------------------------------------------------------------------
   # Illusion DPS
@@ -798,7 +834,7 @@ axioms:
     display_name: "Illusion DPS (dmg equiv)"
     category: offense
     comment: |
-      Illusion damage as effective bonus damage. 50 g/pt.
+      Illusion damage as effective bonus damage.
       Custom_stat computes: %dmg × count × uptime / survivability × expected_dmg.
 
   # -------------------------------------------------------------------------
@@ -810,20 +846,20 @@ axioms:
     formula: "bonus_health"
     display_name: "AoE Burst Damage"
     category: offense
-    comment: "AoE magic burst. Same g/pt as HP (4g). AoE multiplied in custom_stat."
+    comment: "AoE magic burst. Same g/pt as HP. AoE multiplied in custom_stat."
 
   damage_per_second:
     method: formula
     formula: "bonus_damage * aura_avg_targets * permanent_dmg_uptime_during_whole_game"
     display_name: "Damage Per Second"
     category: offense
-    comment: "Persistent AoE DPS. 50 g/pt × 1.5 targets × 0.20 uptime = 15 g/pt."
+    comment: "Persistent AoE DPS scaled by avg targets and uptime."
 
   blast_slow_value:
     method: formula
     formula: "bonus_movement_speed"
     display_name: "AoE Slow (MS equiv)"
-    category: offense
+    category: disable
     comment: "AoE slow converted to MS equivalent. Uptime + targets in custom_stat."
 
   # -------------------------------------------------------------------------

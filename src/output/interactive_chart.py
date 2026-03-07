@@ -192,6 +192,8 @@ select, input[type="checkbox"] {{
     display: none;
     z-index: 1000;
     max-width: 350px;
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }}
 .tooltip.visible {{ display: block; }}
@@ -434,6 +436,7 @@ select, input[type="checkbox"] {{
                         pinnedItem = item;
                         highlightPoint(item);
                         showTooltip(e, item);
+                        tooltip.style.pointerEvents = 'auto';
                     }}
                 }});
 
@@ -548,6 +551,7 @@ select, input[type="checkbox"] {{
 
             if (left + tooltipRect.width > window.innerWidth) left = e.clientX - tooltipRect.width - 15;
             if (top + tooltipRect.height > window.innerHeight) top = window.innerHeight - tooltipRect.height - 10;
+            if (top < 10) top = 10;
 
             tooltip.style.left = left + 'px';
             tooltip.style.top = top + 'px';
@@ -555,6 +559,7 @@ select, input[type="checkbox"] {{
 
         function hideTooltip() {{
             tooltip.classList.remove('visible');
+            tooltip.style.pointerEvents = 'none';
         }}
 
         function highlightPoint(item) {{
@@ -581,6 +586,7 @@ select, input[type="checkbox"] {{
             }});
         }}
 
+        tooltip.addEventListener('click', (e) => {{ e.stopPropagation(); }});
         document.addEventListener('click', () => {{
             pinnedItem = null;
             clearHighlight();
@@ -605,6 +611,7 @@ select, input[type="checkbox"] {{
                 if (circle) {{
                     const rect = circle.getBoundingClientRect();
                     showTooltip({{ clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }}, item);
+                    tooltip.style.pointerEvents = 'auto';
                 }}
             }}
         }}

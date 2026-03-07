@@ -26,6 +26,7 @@ def generate_axioms_table(axioms_data: dict[str, Any], rules, output_file: Path)
     <title>Axioms - Dota 2 Item Analysis (Patch {patch})</title>
     <style>
 {SHARED_CSS}
+.compact-table th, .compact-table td {{ padding: 4px 10px; }}
 .category-badge {{
     display: inline-block;
     padding: 2px 8px;
@@ -40,9 +41,10 @@ def generate_axioms_table(axioms_data: dict[str, Any], rules, output_file: Path)
 .category-badge.sustain {{ background: rgba(155, 89, 182, 0.2); color: #9b59b6; }}
 .category-badge.aura {{ background: rgba(241, 196, 15, 0.2); color: #f1c40f; }}
 .category-badge.utility {{ background: rgba(26, 188, 156, 0.2); color: #1abc9c; }}
-.status-active {{ color: #27a95d; }}
-.status-unknown {{ color: #e74c3c; }}
-.depends {{ font-size: 0.8em; color: #888; }}
+.category-badge.debuff {{ background: rgba(192, 57, 43, 0.2); color: #e67e22; }}
+.category-badge.movement {{ background: rgba(52, 73, 94, 0.2); color: #85c1e9; }}
+.category-badge.disable {{ background: rgba(142, 68, 173, 0.2); color: #bb8fce; }}
+.depends {{ font-size: 0.8em; color: #c4c4c4; }}
     </style>
 </head>
 <body>
@@ -68,6 +70,39 @@ def generate_axioms_table(axioms_data: dict[str, Any], rules, output_file: Path)
 
     html += """        </div>
 
+        <h2 style="color: #5dade2; margin: 20px 0 10px;">Constants</h2>
+        <div class="table-container">
+            <table class="compact-table" style="font-size: 0.9em;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+"""
+
+    settings = axioms_data.get("settings", {})
+    for key, s in settings.items():
+        s_name = s.get("name", key) if isinstance(s, dict) else key
+        s_value = s.get("value", s) if isinstance(s, dict) else s
+        s_comment = s.get("comment", "") if isinstance(s, dict) else ""
+        s_comment = s_comment.strip().replace("\n", "<br>")
+        html += f"""                    <tr>
+                        <td><strong>{s_name}</strong></td>
+                        <td class="text-muted">{key}</td>
+                        <td class="text-green">{s_value}</td>
+                        <td class="text-muted">{s_comment}</td>
+                    </tr>
+"""
+
+    html += """                </tbody>
+            </table>
+        </div>
+
+        <h2 style="color: #5dade2; margin: 20px 0 10px;">Axioms</h2>
         <div class="table-container">
             <table id="axiomsTable">
                 <thead>
@@ -77,26 +112,30 @@ def generate_axioms_table(axioms_data: dict[str, Any], rules, output_file: Path)
                         <th data-col="method">Method</th>
                         <th data-col="reference">Reference Item</th>
                         <th data-col="category">Category</th>
-                        <th data-col="status">Status</th>
                         <th>Details</th>
                     </tr>
                 </thead>
                 <tbody>
 """
 
-    # Sort axioms by category then name
-    sorted_axioms = sorted(axioms.items(), key=lambda x: (x[1].get("category", "z"), x[0]))
+    # Sort axioms: reference_item first, then by category and name
+    def axiom_sort_key(item):
+        ax = item[1]
+        has_ref = ax.get("calculation", {}).get("reference_item") not in (None, "", "-")
+        return (0 if has_ref else 1, ax.get("category", "z"), item[0])
+
+    sorted_axioms = sorted(axioms.items(), key=axiom_sort_key)
 
     for name, ax in sorted_axioms:
         display_name = ax.get("display_name", name)
         gold = ax.get("gold_per_point", 0)
         category = ax.get("category", "other")
-        status = ax.get("status", "active")
+        comment = ax.get("comment", "").strip().replace("\n", "<br>")
         calc = ax.get("calculation", {})
         method = calc.get("method", "unknown")
         ref_item = calc.get("reference_item", "-")
         formula = calc.get("formula", "")
-        depends = ax.get("depends_on", [])
+        formula_symbolic = calc.get("formula_symbolic", "")
 
         # Format gold value
         if isinstance(gold, float):
@@ -104,24 +143,18 @@ def generate_axioms_table(axioms_data: dict[str, Any], rules, output_file: Path)
         else:
             gold_str = f"{gold}g"
 
-        # Status class
-        status_class = "status-active" if status == "active" else "status-unknown"
-
         # Reference item display
         if ref_item and ref_item != "-":
             ref_display = ref_item.replace("item_", "").replace("_", " ").title()
         else:
             ref_display = "-"
 
-        # Details (formula + depends)
-        details = formula if formula else ""
-        if depends:
-            depends_str = ", ".join(depends)
-            details += (
-                f'<div class="depends">Depends: {depends_str}</div>'
-                if details
-                else f'<span class="depends">Depends: {depends_str}</span>'
-            )
+        # Details (comment + formula + depends)
+        details = f"<div>{comment}</div>" if comment else ""
+        if formula_symbolic:
+            details += f'<div class="depends">{formula_symbolic}</div>'
+        elif formula:
+            details += f'<div class="depends">{formula}</div>'
 
         html += f"""                    <tr>
                         <td><strong>{display_name}</strong><br><span class="text-muted">{name}</span></td>
@@ -129,7 +162,6 @@ def generate_axioms_table(axioms_data: dict[str, Any], rules, output_file: Path)
                         <td>{method}</td>
                         <td>{ref_display}</td>
                         <td><span class="category-badge {category}">{category}</span></td>
-                        <td class="{status_class}">{status}</td>
                         <td class="text-muted">{details}</td>
                     </tr>
 """

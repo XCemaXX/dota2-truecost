@@ -14,3 +14,6 @@ echo "=== pytest ==="
 python -m pytest tests/ -v
 
 echo "=== All checks passed ==="
+
+# black src/ tests/ analyse_patch.py
+# isort src/ tests/ analyse_patch.py

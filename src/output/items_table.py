@@ -31,7 +31,7 @@ def generate_items_table(items_data: list[dict[str, Any]], rules, output_file: P
     <style>
 {SHARED_CSS}
 .expandable {{ cursor: pointer; }}
-.expandable::before {{ content: '\\25B6 '; font-size: 0.7em; color: #888; }}
+.expandable::before {{ content: '\\25B6 '; font-size: 0.7em; color: #c4c4c4; }}
 .expandable.expanded::before {{ content: '\\25BC '; }}
 .chart-link {{ font-size: 0.8em; text-decoration: none; opacity: 0.4; margin-left: 4px; }}
 .chart-link:hover {{ opacity: 1; }}
@@ -53,9 +53,9 @@ def generate_items_table(items_data: list[dict[str, Any]], rules, output_file: P
 .breakdown-item:last-child {{ border-bottom: none; }}
 .breakdown-stat {{ color: #aaa; }}
 .breakdown-value {{ color: #5dade2; }}
-.breakdown-calc {{ color: #888; font-size: 0.9em; }}
+.breakdown-calc {{ color: #c4c4c4; font-size: 0.9em; }}
 .info-stat {{ opacity: 0.6; }}
-.breakdown-value.info {{ color: #888; font-style: italic; }}
+.breakdown-value.info {{ color: #c4c4c4; font-style: italic; }}
 .breakdown-calc.info {{ color: #666; font-style: italic; }}
 .stat-group-header {{
     font-weight: bold;
@@ -69,13 +69,13 @@ def generate_items_table(items_data: list[dict[str, Any]], rules, output_file: P
 .stat-group-header:first-child {{ margin-top: 0; }}
 .stat-group-header .group-name {{ color: #f4d03f; }}
 .stat-group-header .group-value {{ color: #5dade2; font-weight: bold; }}
-.stat-group-header .group-meta {{ color: #888; font-size: 0.85em; margin-left: 8px; }}
+.stat-group-header .group-meta {{ color: #c4c4c4; font-size: 0.85em; margin-left: 8px; }}
 .stat-group-header.active {{ background: rgba(52, 152, 219, 0.15); padding: 6px 8px; border-radius: 4px; }}
 .stat-group-header.active .group-name {{ color: #3498db; }}
 .stat-group-header.aura {{ background: rgba(241, 196, 15, 0.15); padding: 6px 8px; border-radius: 4px; }}
 .stat-group-header.aura .group-name {{ color: #f1c40f; }}
 .stat-group-header.ignored {{ opacity: 0.5; }}
-.stat-group-header.ignored .group-name {{ color: #888; }}
+.stat-group-header.ignored .group-name {{ color: #c4c4c4; }}
 .stat-group-header.risk {{ background: rgba(231, 76, 60, 0.15); padding: 6px 8px; border-radius: 4px; }}
 .stat-group-header.risk .group-name {{ color: #e74c3c; }}
 .stat-group-stats {{ padding-left: 12px; }}

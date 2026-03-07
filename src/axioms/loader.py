@@ -178,12 +178,22 @@ class ItemOverride:
 
 
 @dataclass
+class SettingMeta:
+    """Metadata for a setting constant."""
+
+    value: float | int
+    name: str
+    comment: str = ""
+
+
+@dataclass
 class AxiomRules:
     """Complete axiom rules structure."""
 
     version: str
     patch: str
     settings: dict[str, Any]
+    settings_meta: dict[str, SettingMeta]
     expected_bases: dict[str, float]
     axioms: dict[str, Axiom]
     stat_normalization: dict[str, str]
@@ -491,8 +501,29 @@ def parse_item_overrides(data: dict[str, Any] | None) -> dict[str, ItemOverride]
     return result
 
 
+def parse_settings(raw: dict[str, Any]) -> tuple[dict[str, Any], dict[str, SettingMeta]]:
+    """Parse settings: supports both plain values and {value, name, comment} dicts."""
+    values: dict[str, Any] = {}
+    meta: dict[str, SettingMeta] = {}
+    for key, val in raw.items():
+        if isinstance(val, dict) and "value" in val:
+            values[key] = val["value"]
+            meta[key] = SettingMeta(
+                value=val["value"],
+                name=val.get("name", key),
+                comment=val.get("comment", ""),
+            )
+        else:
+            values[key] = val
+            meta[key] = SettingMeta(value=val, name=key)
+    return values, meta
+
+
 def parse_rules(data: dict[str, Any]) -> AxiomRules:
     """Parse raw dict into AxiomRules dataclass."""
+    # Parse settings
+    settings_values, settings_meta = parse_settings(data.get("settings", {}))
+
     # Parse axioms
     axioms = {}
     for name, axiom_data in data.get("axioms", {}).items():
@@ -502,7 +533,8 @@ def parse_rules(data: dict[str, Any]) -> AxiomRules:
     return AxiomRules(
         version=data.get("version", ""),
         patch=data.get("patch", ""),
-        settings=data.get("settings", {}),
+        settings=settings_values,
+        settings_meta=settings_meta,
         expected_bases=data.get("expected_bases", {}),
         axioms=axioms,
         stat_normalization=data.get("stat_normalization", {}),
