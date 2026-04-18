@@ -31,6 +31,12 @@ stat_normalization:
   movement_speed: bonus_movement_speed
   bonus_movement: bonus_movement_speed
   movement_speed_percent_bonus: bonus_movement_speed_percent
+  melee_ms_bonus: bonus_movement_speed_percent
+  berserk_ms_melee_avg: bonus_movement_speed_percent
+  hallowed_ms_avg: bonus_movement_speed_percent
+  hallowed_barrier: absorb_amount
+  array_damage: bonus_damage
+  miasma_dot_total: damage
 
   # Combat - Damage
   attack_damage: bonus_damage
@@ -46,6 +52,9 @@ stat_normalization:
   bonus_magical_armor: bonus_magic_resistance
   bonus_spell_resist: bonus_magic_resistance
   magic_resist: bonus_magic_resistance
+  spell_reduce: bonus_magic_resistance
+  bonus_aoe: aoe_bonus
+  aura_spell_vulnerability: spell_amp
   magic_resistance: bonus_magic_resistance
   spell_damage: bonus_spell_damage
   bonus_spell_amp: spell_amp
@@ -88,9 +97,11 @@ stat_normalization:
   slow_resist: slow_resistance
   health_regen_amplification: hp_regen_amp
   mana_loss_reduction: mana_regen_multiplier
+  restoration_reduction: heal_reduction
   cooldown_reduction: bonus_cooldown
   # tooltip_crit_damage: removed (crit_multiplier no longer an axiom)
   agility: bonus_agility
+  strength: bonus_strength
 
   # Active ability stat mappings (for uptime_stats)
   active_movement_speed: bonus_movement_speed
@@ -98,6 +109,7 @@ stat_normalization:
   damage_absorb: absorb_amount
   berserk_bonus_attack_speed: bonus_attack_speed
   berserk_bonus_movement_speed: bonus_movement_speed
+  berserk_slow_resist: slow_resistance
   bonus_agi_active: bonus_agility
   heal_amount: bonus_health
   mana_amount: bonus_mana
@@ -170,6 +182,8 @@ ignored_stats:
     base_attack_range: { reason: "Attack range bonus — free stat on Dragon Lance/Hurricane Pike (stats > item cost)" }
     bonus_attack_range: { reason: "Attack range bonus alias" }
     attack_range: { reason: "Attack range bonus alias" }
+    melee_attack_range: { reason: "Melee-only AR bonus — consistent with other attack_range keys being ignored" }
+    base_attack_range_melee: { reason: "Melee-only AR bonus — consistent with other attack_range keys being ignored" }
     creep_bonus_damage: { reason: "Dominated creep damage — not hero damage" }
     creep_bonus_hp_regen: { reason: "Dominated creep HP regen — not hero stat" }
 
@@ -180,6 +194,10 @@ ignored_stats:
 
     # Tooltip only (3+ items)
     mana_cost_tooltip: { reason: "Mana cost display tooltip" }
+    tooltip_resist: { reason: "Tooltip display of magic resistance" }
+
+    # Flags (non-numeric behavior)
+    add_nostack_debuff: { reason: "Flag for non-stacking debuff behavior" }
 
     # Ability effects (3+ items)
     illusion_multiplier_pct: { reason: "Flag (100% = illusions receive effect), no value" }
@@ -268,8 +286,6 @@ excluded_items:
     item_samurai_tabi:
       reason: "Non-existent item in patch 7.40c"
     item_hermes_sandals:
-      reason: "Non-existent item in patch 7.40c"
-    item_specialists_array:
       reason: "Non-existent item in patch 7.40c"
     item_lunar_crest:
       reason: "Non-existent item in patch 7.40c"

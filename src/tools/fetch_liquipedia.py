@@ -115,10 +115,12 @@ ITEM_CATEGORIES = {
         "Orb of Venom",
         "Quelling Blade",
         "Ring of Protection",
+        "Splintmail",
     ],
     "Miscellaneous": [
         "Blink Dagger",
         "Boots of Speed",
+        "Chasm Stone",
         "Cloak",
         "Fluffy Hat",
         "Gem of True Sight",
@@ -129,12 +131,13 @@ ITEM_CATEGORIES = {
         "Ring of Regen",
         "Sage's Mask",
         "Shadow Amulet",
+        "Shawl",
         "Void Stone",
         "Voodoo Mask",
         "Wind Lace",
+        "Wizard Hat",
     ],
     "Secret Shop": [
-        "Cornucopia",
         "Demon Edge",
         "Eaglesong",
         "Energy Booster",
@@ -172,8 +175,8 @@ ITEM_CATEGORIES = {
     "Support": [
         "Arcane Boots",
         "Boots of Bearing",
-        "Buckler",
         "Drum of Endurance",
+        "Essence Distiller",
         "Guardian Greaves",
         "Headdress",
         "Holy Locket",
@@ -191,6 +194,7 @@ ITEM_CATEGORIES = {
         "Aether Lens",
         "Aghanim's Scepter",
         "Bloodstone",
+        "Crella's Crozier",
         "Dagon",
         "Ethereal Blade",
         "Eul's Scepter of Divinity",
@@ -211,8 +215,9 @@ ITEM_CATEGORIES = {
         "Assault Cuirass",
         "Black King Bar",
         "Blade Mail",
+        "Buckler",
+        "Consecrated Wraps",
         "Crimson Guard",
-        "Eternal Shroud",
         "Eye of Skadi",
         "Heart of Tarrasque",
         "Helm of the Dominator",
@@ -252,6 +257,7 @@ ITEM_CATEGORIES = {
         "Harpoon",
         "Heaven's Halberd",
         "Hurricane Pike",
+        "Hydra's Breath",
         "Kaya",
         "Kaya and Sange",
         "Khanda",
@@ -263,9 +269,15 @@ ITEM_CATEGORIES = {
         "Sange",
         "Sange and Yasha",
         "Satanic",
+        "Specialist's Array",
         "Swift Blink",
         "Yasha",
         "Yasha and Kaya",
+    ],
+    # Hidden Shop Items (not listed in shop, but can be purchased)
+    "Hidden Shop": [
+        "Aghanim's Blessing",
+        "Boots of Travel 2",
     ],
 }
 
@@ -747,14 +759,20 @@ def _parse_components(soup: BeautifulSoup, item_name: str) -> list[dict[str, Any
     if not all_links:
         return components
 
-    # Check if current item is the FIRST link (meaning it's the result)
-    first_link_title = all_links[0].get("title", "")
-    first_match = re.match(r"([^(]+)\s*\((\d+)\)", first_link_title)
-    if not first_match or first_match.group(1).strip() != item_name:
+    # Recipe row layout: [items that use this item] -> [this item] -> [components of this item]
+    # Find this item's position; components are links AFTER it.
+    self_index = -1
+    for i, link in enumerate(all_links):
+        title = link.get("title", "")
+        m = re.match(r"([^(]+)\s*\((\d+)\)", title)
+        if m and m.group(1).strip() == item_name:
+            self_index = i
+            break
+
+    if self_index == -1:
         return components
 
-    # Current item is the result — extract components (skip first)
-    for link in all_links[1:]:
+    for link in all_links[self_index + 1 :]:
         title = link.get("title", "")
         comp_match = re.match(r"([^(]+)\s*\((\d+)\)", title)
         if comp_match:

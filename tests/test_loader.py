@@ -36,7 +36,7 @@ class TestLoadAxiomRules:
         """Test loading the actual axiom_rules.yaml file."""
         assert rules is not None
         assert rules.version == "1.0"
-        assert rules.patch == "7.40c"
+        assert rules.patch == "7.41b"
 
     def test_has_required_sections(self, rules: AxiomRules):
         """Test that all required sections exist."""

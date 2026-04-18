@@ -1,7 +1,7 @@
 # Axiom Rules - Single Source of Truth for Item Valuation
 
 version: "1.0"
-patch: "7.40c"
+patch: "7.41b"
 
 # Settings — named constants for pipeline and formulas
 # Each setting can be a plain value or a dict with {value, name, comment}
@@ -240,6 +240,16 @@ axioms:
     category: sustain
     comment: |
       Only pure lifesteal item. Component for Satanic, Mask of Madness
+
+  aoe_bonus:
+    method: reference_item
+    reference_item: item_chasm_stone
+    stat: aoe_bonus
+    display_name: "Area of Effect"
+    category: utility
+    comment: |
+      Chasm Stone reference for AoE radius bonus. Does not stack across
+      Chasm-derived items in-game, but priced per-item here.
 
   # -------------------------------------------------------------------------
   # Secondary Axioms - Complex/multi-component items
@@ -1163,18 +1173,18 @@ item_overrides:
       block_damage_ranged:
         multiplier: 0.5
         reason: "Ranged-only stat - averaged for hero type distribution"
-    comment: "Passive block 50% melee/ranged avg. Guard AoE block valued w/ uptime."
+    comment: "Passive block 50% melee/ranged avg. Guard AoE block valued w/ uptime, averaging ranged ally penalty."
     custom_stats:
       guard_block:
-        formula: "(block_damage_active + max_hp_pct / 100 * expected_enemy_hp) * aura_avg_targets * duration / AbilityCooldown"
+        formula: "(block_damage_active - block_penalty_ranged * 0.5 + max_hp_pct / 100 * expected_enemy_hp) * aura_avg_targets * duration / AbilityCooldown"
         axiom: block_damage_melee
-        reason: "Guard: (70 + 2.2%×3000HP) × 1.5 AoE × 7s/40s CD"
+        reason: "Guard: active block minus half ranged penalty (avg ally mix) + HP% block, scaled by AoE targets and uptime"
     ignored_stats:
       block_chance_active: { reason: "Guard active 100% chance (no discount needed)" }
       block_damage_active: { reason: "Consumed by guard_block formula" }
+      block_penalty_ranged: { reason: "Consumed by guard_block formula (ranged ally block penalty)" }
       bonus_aoe_radius: { reason: "Buckler/Crimson Guard aura radius" }
       max_hp_pct: { reason: "Consumed by guard_block formula" }
-      tooltip_reapply_time: { reason: "Crimson Guard reapply time tooltip" }
     abilities:
       - name: "Guard"
         type: active
@@ -1233,23 +1243,60 @@ item_overrides:
           - slow_ranged
           - heal_reduction
 
+  item_hydras_breath:
+    display_name: "Hydra's Breath"
+    comment: "Polycephaly (3-target splitshot upgrade) not valued, same pattern as BF Cleave / Specialist's Array Splitshot. Miasma DoT priced like Orb of Venom poison."
+    custom_stats:
+      array_damage:
+        formula: "damage"
+        comment: "Raw 'damage' stat → bonus_damage axiom"
+      miasma_dot_total:
+        formula: "poison_damage_per_second * poison_duration"
+        comment: "Miasma: DPS × duration = 2.5 × 3 = 7.5 damage per attack"
+    ignored_stats:
+      damage: { reason: "Consumed by array_damage custom_stat" }
+      base_count: { reason: "Polycephaly base projectile count" }
+      count: { reason: "Polycephaly projectile count — not valued" }
+      base_proc_dmg: { reason: "Polycephaly base damage — not valued" }
+      proc_chance: { reason: "Polycephaly proc chance — not valued" }
+      proc_dmg_pct: { reason: "Polycephaly damage % — not valued" }
+      proc_dmg_pct_primary_tooltip: { reason: "Tooltip only" }
+      secondary_target_range_bonus: { reason: "Polycephaly cone range" }
+      secondary_target_angle: { reason: "Polycephaly cone angle" }
+      poison_damage_per_second: { reason: "Consumed by miasma_dot_total custom_stat" }
+      poison_duration: { reason: "Consumed by miasma_dot_total formula" }
+      poison_base_damage: { reason: "Miasma initial damage (0)" }
+    abilities:
+      - name: "Miasma"
+        type: passive
+        stats:
+          - poison_damage_per_second
+          - poison_duration
+          - poison_base_damage
+      - name: "Polycephaly"
+        type: passive
+        stats:
+          - proc_chance
+          - count
+          - base_proc_dmg
+          - proc_dmg_pct
+          - secondary_target_angle
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - strength
+          - agility
+          - damage
+
   item_heavens_halberd:
     display_name: "Heaven's Halberd"
     custom_stats:
       cc_disarm:
         formula: "disarm_melee / sqrt(AbilityCooldown)"
-        comment: "Disarm 3s / 20s CD"
-    switchable_stats:
-      block_damage_melee:
-        multiplier: 0.5
-        reason: "Melee-only stat - averaged for hero type distribution"
-      block_damage_ranged:
-        multiplier: 0.5
-        reason: "Ranged-only stat - averaged for hero type distribution"
-    comment: "Block damage differs by hero attack type. Using 50% average."
+        comment: "Disarm duration scaled by cooldown"
     ignored_stats:
       disarm_melee: { reason: "Disarm duration (used in cc_disarm formula)" }
-      disarm_range: { reason: "Ranged hero disarm duration (same as melee in 7.40c)" }
+      disarm_range: { reason: "Ranged hero disarm duration (same as melee)" }
     abilities:
       - name: "Disarm"
         type: active
@@ -1257,11 +1304,12 @@ item_overrides:
           - disarm_melee
           - disarm_range
           - cc_disarm
-      - name: "Damage Block"
+      - name: "Passive Stats"
         type: passive
         stats:
-          - block_damage_melee
-          - block_damage_ranged
+          - bonus_armor
+          - bonus_health_regen
+          - bonus_evasion
 
   item_power_treads:
     switchable_stats:
@@ -1351,29 +1399,43 @@ item_overrides:
       cc_silence:
         formula: "-0.5 * berserk_duration / sqrt(AbilityCooldown)"
         comment: "Self-silence penalty × 0.5: controllable timing, BKB pierces"
+      berserk_ms_melee_avg:
+        formula: "berserk_bonus_movement_speed_melee * 0.5"
+        comment: "Melee-only MS bonus during Berserk, averaged across melee/ranged hero pool"
     uptime_stats:
       berserk_bonus_attack_speed:
         cooldown_stat: AbilityCooldown
         duration_stat: berserk_duration
-        reason: "Berserk: +100 AS for 6s / 16s CD"
+        reason: "Berserk: AS buff for berserk_duration / CD"
       berserk_bonus_movement_speed:
         cooldown_stat: AbilityCooldown
         duration_stat: berserk_duration
-        reason: "Berserk: +25 MS for 6s / 16s CD"
+        reason: "Berserk: base MS buff for berserk_duration / CD"
+      berserk_ms_melee_avg:
+        cooldown_stat: AbilityCooldown
+        duration_stat: berserk_duration
+        reason: "Berserk: melee-only MS delta for berserk_duration / CD"
+      berserk_slow_resist:
+        cooldown_stat: AbilityCooldown
+        duration_stat: berserk_duration
+        reason: "Berserk: slow resistance buff for berserk_duration / CD"
       berserk_armor_reduction:
         cooldown_stat: AbilityCooldown
         duration_stat: berserk_duration
         stat_as: penalty_armor
-        reason: "Berserk penalty: -8 armor for 6s / 16s CD"
-    comment: "Berserk: AS/MS buff + armor penalty + self-silence for 6s / 16s CD."
+        reason: "Berserk penalty: armor reduction for berserk_duration / CD"
+    comment: "Berserk: AS/MS buff + armor penalty + self-silence for berserk_duration / CD."
     ignored_stats:
       berserk_duration: { reason: "Berserk buff duration (used for uptime calc)" }
+      berserk_bonus_movement_speed_melee: { reason: "Consumed by berserk_ms_melee_avg custom_stat" }
     abilities:
       - name: "Berserk"
         type: active
         stats:
           - berserk_bonus_attack_speed
           - berserk_bonus_movement_speed
+          - berserk_bonus_movement_speed_melee
+          - berserk_slow_resist
           - berserk_armor_reduction
           - berserk_duration
       - name: "Lifesteal"
@@ -1713,6 +1775,74 @@ item_overrides:
           - bonus_health
           - bonus_mana
 
+  item_consecrated_wraps:
+    display_name: "Consecrated Wraps"
+    custom_stats:
+      hallowed_ms_avg:
+        formula: "movement_speed_pct_on_stack_gain * 0.85"
+        comment: "+15% MS on charge gain, near-permanent out of combat, ~85% in-combat uptime"
+      hallowed_barrier:
+        formula: "barrier_per_stack * duration / AbilityChargeRestoreTime"
+        comment: "Barrier steady-state: per_stack × duration / charge_restore_time → absorb_amount axiom"
+    ignored_stats:
+      movement_speed_pct_on_stack_gain: { reason: "Consumed by hallowed_ms_avg custom_stat" }
+      barrier_per_stack: { reason: "Consumed by hallowed_barrier custom_stat" }
+      stack_threshold_damage: { reason: "Damage threshold to trigger barrier (0 = any damage)" }
+      max_barrier_tooltip: { reason: "Tooltip display of max barrier" }
+      duration: { reason: "Consumed by hallowed_barrier formula" }
+    abilities:
+      - name: "Hallowed"
+        type: passive
+        stats:
+          - movement_speed_pct_on_stack_gain
+          - barrier_per_stack
+          - max_barrier_tooltip
+          - duration
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_all_stats
+          - bonus_health
+          - bonus_spell_resist
+
+  item_crellas_crozier:
+    display_name: "Crella's Crozier"
+    ability_value: "item_cost:item_ghost"
+    comment: "Rite of Rumusque inherits Ghost Scepter component's ability value. Putrefaction Aura priced via restoration_reduction_aura."
+    uptime_stats:
+      extra_spell_damage_percent:
+        cooldown_stat: AbilityCooldown
+        duration_stat: duration
+        reason: "Rite of Rumusque: magic vulnerability during ghost form"
+      health_steal:
+        stat_as: restoration_reduction_aura
+        reason: "Putrefaction Aura: HR reduction on enemies (always-on aura)"
+    ignored_stats:
+      active_health_steal: { reason: "Rite active HR boost (covered by ability_value)" }
+      active_radius: { reason: "Rite effect radius" }
+      duration: { reason: "Consumed by uptime calc" }
+      interval: { reason: "Putrefaction tick interval" }
+      movespeed_steal_pct: { reason: "Rite MS steal (covered by ability_value)" }
+      radius: { reason: "Putrefaction aura radius" }
+      stack_duration: { reason: "MS steal stack duration" }
+    abilities:
+      - name: "Rite of Rumusque"
+        type: active
+        stats:
+          - extra_spell_damage_percent
+          - movespeed_steal_pct
+          - active_health_steal
+      - name: "Putrefaction Aura"
+        type: aura
+        stats:
+          - health_steal
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - bonus_all_stats
+          - bonus_health
+          - bonus_mana
+
   item_ghost:
     display_name: "Ghost Scepter"
     ability_value: "item_cost:item_ghost"
@@ -1734,7 +1864,7 @@ item_overrides:
         formula: "duration / sqrt(AbilityCooldown)"
         comment: "Avatar spell immunity 9s / 95s CD"
     uptime_stats:
-      magic_resist:
+      spell_reduce:
         cooldown_stat: AbilityCooldown
         duration_stat: duration
         reason: "BKB active: 60% magic resistance for 9s / 95s CD"
@@ -1745,7 +1875,7 @@ item_overrides:
       - name: "Avatar"
         type: active
         stats:
-          - magic_resist
+          - spell_reduce
           - cc_immunity
       - name: "Passive Stats"
         type: passive
@@ -2260,6 +2390,13 @@ item_overrides:
           - bonus_attack_speed
 
   item_sange_and_yasha:
+    custom_stats:
+      melee_ms_bonus:
+        formula: "movement_speed_percent_bonus_melee * 0.5"
+        axiom: bonus_movement_speed_percent
+        comment: "Melee-only MS bonus, averaged across melee/ranged hero pool"
+    ignored_stats:
+      movement_speed_percent_bonus_melee: { reason: "Consumed by melee_ms_bonus custom_stat" }
     abilities:
       - name: "Passive Stats"
         type: passive
@@ -2269,6 +2406,7 @@ item_overrides:
           - status_resistance
           - bonus_attack_speed
           - movement_speed_percent_bonus
+          - movement_speed_percent_bonus_melee
           - hp_regen_amp
           - slow_resistance
 
@@ -2286,8 +2424,14 @@ item_overrides:
           - manacost_reduction
 
   item_yasha_and_kaya:
+    custom_stats:
+      melee_ms_bonus:
+        formula: "movement_speed_percent_bonus_melee * 0.5"
+        axiom: bonus_movement_speed_percent
+        comment: "Melee-only MS bonus, averaged across melee/ranged hero pool"
     ignored_stats:
       cast_speed_pct: { reason: "Cast animation speed (Y&K only), utility not priced" }
+      movement_speed_percent_bonus_melee: { reason: "Consumed by melee_ms_bonus custom_stat" }
     abilities:
       - name: "Passive Stats"
         type: passive
@@ -2297,6 +2441,7 @@ item_overrides:
           - bonus_attack_speed
           - mana_regen_multiplier
           - movement_speed_percent_bonus
+          - movement_speed_percent_bonus_melee
           - spell_amp
           - cast_speed_pct
 
@@ -2324,7 +2469,6 @@ item_overrides:
         formula: "duration / sqrt(AbilityCooldown) * aura_avg_targets"
         comment: "Eternal Chains root 2.0s (AoE) / sqrt(18s CD) × avg targets"
     ignored_stats:
-      bonus_aoe: { reason: "AoE spell radius bonus (Gungir/Bloodstone), utility not priced" }
       radius_tooltip: { reason: "Radius display tooltip" }
     abilities:
       - name: "Eternal Chains"
@@ -2437,6 +2581,7 @@ item_overrides:
     display_name: "Refresher Orb"
     ignored_stats:
       cooldown_duration: { reason: "Refresher/Aeon Disk cooldown period" }
+      refresh_items: { reason: "Item refresh count (0 in 7.41 — items no longer refreshed)" }
     abilities:
       - name: "Reset Cooldowns"
         type: active
@@ -2464,16 +2609,15 @@ item_overrides:
 
   item_shivas_guard:
     display_name: "Shiva's Guard"
-    comment: "Magic Weakness aura (magic resist reduction) not valued — debuff % not in game data"
     custom_stats:
       blast_aoe_damage:
         formula: "blast_damage * aura_avg_targets"
         axiom: damage
-        comment: "Arctic Blast 200 AoE magic dmg × 1.5 targets = 300 effective"
+        comment: "Arctic Blast AoE magic dmg scaled by avg targets"
       blast_slow_value:
         formula: "-1 * blast_movement_speed * expected_move_speed / 100 * blast_debuff_duration / AbilityCooldown * aura_avg_targets"
         axiom: bonus_movement_speed
-        comment: "40% slow × 365 MS × 4s/27s uptime × 1.5 targets"
+        comment: "Blast MS slow averaged over cooldown and target count"
     uptime_stats:
       aura_attack_speed:
         stat_as: aura_negative_attack_speed
@@ -2484,7 +2628,6 @@ item_overrides:
       blast_movement_speed: { reason: "Consumed by blast_slow_value custom_stat" }
       blast_radius: { reason: "Explosion/blast area of effect" }
       blast_speed: { reason: "Shiva's blast expansion speed" }
-      resist_debuff_duration: { reason: "Magic Weakness debuff duration (not valued)" }
     abilities:
       - name: "Arctic Blast"
         type: active
@@ -2495,17 +2638,11 @@ item_overrides:
         type: aura
         stats:
           - aura_attack_speed
-          - restoration_reduction_aura
       - name: "Passive Stats"
         type: passive
         stats:
-          - bonus_intellect
-          - bonus_strength
-          - bonus_agility
-          - bonus_hp_regen
           - bonus_armor
-          - spell_amp
-          - illusion_multiplier_pct
+          - bonus_aoe
 
   item_sheepstick:
     display_name: "Scythe of Vyse"
@@ -2599,18 +2736,19 @@ item_overrides:
           - bonus_mana_regen
 
   item_mage_slayer:
-    comment: "20 magic DPS on-hit treated as +20 attack damage (duration and damage type ignored for simplicity)."
+    comment: "DoT on-hit priced as flat damage via dps→bonus_damage normalization; spell damage debuff priced via spell_amp_debuff→spell_amp. Damage type (phys/magic) not modeled."
     abilities:
       - name: "Mage Slayer"
         type: passive
         stats:
+          - dps
+          - duration
           - spell_amp_debuff
       - name: "Passive Stats"
         type: passive
         stats:
           - bonus_magical_armor
           - bonus_damage
-          - bonus_attack_speed
           - bonus_health_regen
           - bonus_mana_regen
 
@@ -2706,28 +2844,6 @@ item_overrides:
         type: passive
         stats:
           - bonus_damage
-
-  item_eternal_shroud:
-    ability_not_evaluated: true
-    comment: "Eternal Endurance (+3.5% MR/stack, max 6=+21%) + Shroud (25% mana restore) not valued"
-    ignored_stats:
-      mana_restore_pct: { reason: "Mana restoration percentage" }
-      max_stacks: { reason: "Maximum stack count" }
-      stack_duration: { reason: "Eternal Shroud stack duration" }
-      stack_resist: { reason: "Eternal Shroud stack resist" }
-      stack_threshold: { reason: "Eternal Shroud stack threshold" }
-    abilities:
-      - name: "Eternal Endurance"
-        type: passive
-        stats:
-          - stack_resist
-          - mana_restore_pct
-      - name: "Passive Stats"
-        type: passive
-        stats:
-          - bonus_spell_resist
-          - bonus_strength
-          - bonus_health
 
   # -------------------------------------------------------------------------
   # Batch 15: Phase Boots, Veil of Discord, MoM, Glimmer, Holy Locket, Blade Mail, Diffusal, HotD, Solar Crest, Phylactery
@@ -2940,7 +3056,6 @@ item_overrides:
     display_name: "Eye of Skadi"
     ignored_stats:
       cold_duration: { reason: "Cold attack slow duration" }
-      restoration_reduction: { reason: "Duplicates heal_reduction on target" }
     switchable_stats:
       cold_slow_melee:
         multiplier: 0.5
@@ -3007,6 +3122,76 @@ item_overrides:
           - bonus_attack_speed
           - bonus_armor
           - bonus_mana_regen
+
+  item_specialists_array:
+    display_name: "Specialist's Array"
+    comment: "Splitshot (multi-target ranged passive) not valued — same pattern as Battle Fury Cleave."
+    custom_stats:
+      array_damage:
+        formula: "damage"
+        comment: "Raw 'damage' stat → bonus_damage axiom (raw key otherwise maps to ability-damage axiom)"
+    ignored_stats:
+      damage: { reason: "Consumed by array_damage custom_stat (remapped to bonus_damage axiom)" }
+      all_stats: { reason: "+0, unused" }
+      count: { reason: "Splitshot projectile count — not valued (multi-target passive, see BF cleave)" }
+      base_proc_dmg: { reason: "Splitshot base damage — not valued" }
+      proc_chance: { reason: "Splitshot proc chance — not valued" }
+      proc_dmg_pct: { reason: "Splitshot damage % — not valued" }
+      proc_dmg_pct_primary_tooltip: { reason: "Tooltip display" }
+      secondary_target_range_bonus: { reason: "Splitshot cone range" }
+      secondary_target_angle: { reason: "Splitshot cone angle" }
+    abilities:
+      - name: "Splitshot"
+        type: passive
+        stats:
+          - proc_chance
+          - count
+          - base_proc_dmg
+          - proc_dmg_pct
+          - secondary_target_angle
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - agility
+          - damage
+
+  item_essence_distiller:
+    display_name: "Essence Distiller"
+    custom_stats:
+      soul_release_value:
+        formula: "(soul_heal_amount * duration + soul_damage_amount * duration) / 2 * 0.3"
+        axiom: damage
+        reason: "Same formula as Urn: avg (heal+dmg)/2, charge coeff 0.3"
+    ignored_stats:
+      soul_additional_charges: { reason: "Additional charges per kill" }
+      soul_damage_amount: { reason: "Consumed by soul_release_value formula" }
+      soul_heal_amount: { reason: "Consumed by soul_release_value formula" }
+      soul_initial_charge: { reason: "Initial charges at 0" }
+      soul_radius: { reason: "Charge acquisition radius" }
+      duration: { reason: "Consumed by soul_release_value formula" }
+      ground_duration: { reason: "Ground-latch mechanic duration, not priced" }
+      latch_range: { reason: "Ground-latch acquisition range" }
+      latch_vision: { reason: "Ground-latch vision" }
+      linger_after_latch_duration: { reason: "Latch linger duration" }
+    abilities:
+      - name: "Soul Release"
+        type: active
+        stats:
+          - soul_heal_amount
+          - soul_damage_amount
+          - soul_radius
+          - soul_initial_charge
+          - soul_additional_charges
+          - duration
+          - ground_duration
+          - latch_range
+      - name: "Passive Stats"
+        type: passive
+        stats:
+          - mana_regen
+          - bonus_armor
+          - bonus_all_stats
+          - bonus_mana
 
   item_urn_of_shadows:
     custom_stats:
@@ -3139,27 +3324,29 @@ item_overrides:
           - mana_regen
 
   item_bloodstone:
-    ability_not_evaluated: true
-    comment: "Bloodpact active (3x spell lifesteal for 5s) not valued — burst healing for spell casters"
+    comment: "Bloodpact active (boosted spell lifesteal while active) not valued — burst healing for spell casters. Also hosts Spell Weakness Aura (moved here from Shiva's Guard in 7.41, renamed from Magic Weakness)."
     ignored_stats:
-      bonus_aoe: { reason: "AoE spell radius bonus (Gungir/Bloodstone), utility not priced" }
-      buff_duration: { reason: "Buff effect duration" }
-      hp_cost: { reason: "Bloodstone HP cost" }
-      lifesteal_multiplier: { reason: "Bloodstone lifesteal multiplier" }
+      buff_duration: { reason: "Bloodpact duration (not valued)" }
+      hp_cost: { reason: "Bloodstone HP cost (removed self-debuff)" }
+      spell_lifesteal_while_active: { reason: "Bloodpact boosted SL (burst heal not valued)" }
+      aura_radius: { reason: "Spell Weakness Aura radius" }
     abilities:
       - name: "Bloodpact"
         type: active
         stats:
           - buff_duration
-          - lifesteal_multiplier
+          - spell_lifesteal_while_active
           - hp_cost
+      - name: "Spell Weakness Aura"
+        type: aura
+        stats:
+          - aura_spell_vulnerability
       - name: "Passive Stats"
         type: passive
         stats:
-          - bonus_aoe
           - bonus_health
           - bonus_mana
-          - bonus_mp_regen
+          - bonus_intellect
           - spell_lifesteal
 
   item_nullifier:

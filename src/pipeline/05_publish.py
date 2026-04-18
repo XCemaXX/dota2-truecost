@@ -200,6 +200,12 @@ def generate_comparison_html() -> str:
 .controls button:hover {{ background: #3498db; }}
 .controls label {{ color: #aaa; }}
 #message {{ color: #f4d03f; margin: 20px 0; }}
+.help-icon {{
+    display: inline-block; width: 14px; height: 14px; line-height: 14px;
+    text-align: center; border-radius: 50%; background: #5dade2; color: #1a1a2e;
+    font-size: 10px; font-weight: bold; cursor: help; margin-left: 4px;
+}}
+th .sort-mode {{ font-size: 0.75em; color: #aaa; font-weight: normal; margin-left: 4px; }}
 </style>
 </head>
 <body>
@@ -300,47 +306,115 @@ async function compare() {{
             row.effNew = b.effective_cost;
             row.realOld = a.real_cost;
             row.realNew = b.real_cost;
-            row.changePct = b.effective_cost !== 0
-                ? ((b.effective_cost - a.effective_cost) / b.effective_cost) * 100
-                : 0;
+            // Efficiency ratio per patch: how "overvalued" the item is vs its gold cost.
+            // Metric: (ratioB / ratioA - 1) * 100  (relative change of the ratio from A to B)
+            var ratioA = a.real_cost ? a.effective_cost / a.real_cost : null;
+            var ratioB = b.real_cost ? b.effective_cost / b.real_cost : null;
+            row.ratioOld = ratioA;
+            row.ratioNew = ratioB;
+            row.changePct = (ratioA && ratioB) ? ((ratioB / ratioA) - 1) * 100 : null;
             row.status = 'both';
         }} else if (b) {{
             row.name = b.name;
             row.effNew = b.effective_cost;
             row.realNew = b.real_cost;
-            row.changePct = 0;
+            row.ratioNew = b.real_cost ? b.effective_cost / b.real_cost : null;
+            row.changePct = null;
             row.status = 'new';
         }} else {{
             row.name = a.name;
             row.effOld = a.effective_cost;
             row.realOld = a.real_cost;
-            row.changePct = 0;
+            row.ratioOld = a.real_cost ? a.effective_cost / a.real_cost : null;
+            row.changePct = null;
             row.status = 'removed';
         }}
 
         rows.push(row);
     }});
 
-    rows.sort(function(a, b) {{ return Math.abs(b.changePct) - Math.abs(a.changePct); }});
+    window._rows = rows;
+    window._patchA = patchA;
+    window._patchB = patchB;
+    // Sort state: key in name|changePct|effOld|effNew|realOld|realNew; mode in asc|desc|abs
+    window._sort = {{ key: 'changePct', mode: 'abs' }};
 
-    var html = '<div class="table-container"><table>';
-    html += '<thead><tr>' +
-        '<th>Item</th>' +
-        '<th>Change %</th>' +
-        '<th>Eff. Cost (' + patchA + ')</th>' +
-        '<th>Eff. Cost (' + patchB + ')</th>' +
-        '<th>Real Cost (' + patchA + ')</th>' +
-        '<th>Real Cost (' + patchB + ')</th>' +
-        '</tr></thead><tbody>';
+    renderResults();
+}}
 
-    rows.forEach(function(row) {{
+function sortRows(rows, state) {{
+    var key = state.key, mode = state.mode;
+    var nullsLast = function(v) {{ return v == null; }};
+    var compare = function(a, b) {{
+        var va = a[key], vb = b[key];
+        if (nullsLast(va) && nullsLast(vb)) return 0;
+        if (nullsLast(va)) return 1;
+        if (nullsLast(vb)) return -1;
+        if (mode === 'abs') return Math.abs(vb) - Math.abs(va);
+        if (typeof va === 'string') {{
+            return mode === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        }}
+        return mode === 'asc' ? va - vb : vb - va;
+    }};
+    return rows.slice().sort(compare);
+}}
+
+function onHeaderClick(key) {{
+    var s = window._sort;
+    if (key === 'changePct') {{
+        // Cycle: abs -> desc -> asc -> abs
+        if (s.key !== key) {{ s.key = key; s.mode = 'abs'; }}
+        else if (s.mode === 'abs') s.mode = 'desc';
+        else if (s.mode === 'desc') s.mode = 'asc';
+        else s.mode = 'abs';
+    }} else {{
+        if (s.key !== key) {{ s.key = key; s.mode = 'asc'; }}
+        else s.mode = (s.mode === 'asc') ? 'desc' : 'asc';
+    }}
+    renderResults();
+}}
+
+function renderResults() {{
+    var results = document.getElementById('results');
+    var rows = window._rows;
+    var patchA = window._patchA, patchB = window._patchB;
+    var sorted = sortRows(rows, window._sort);
+
+    var formulaTip = 'Change % = (ratio_new / ratio_old − 1) × 100, where ratio = effective_cost / real_cost.\\n'
+        + 'Shows how the over/undervaluation of the item shifted between patches.\\n'
+        + 'Positive = item became relatively more overvalued in the new patch.';
+
+    var cols = [
+        {{ key: 'name',     label: 'Item' }},
+        {{ key: 'changePct',label: 'Change %', tip: formulaTip }},
+        {{ key: 'effOld',   label: 'Eff. Cost (' + patchA + ')' }},
+        {{ key: 'effNew',   label: 'Eff. Cost (' + patchB + ')' }},
+        {{ key: 'realOld',  label: 'Real Cost (' + patchA + ')' }},
+        {{ key: 'realNew',  label: 'Real Cost (' + patchB + ')' }}
+    ];
+
+    var html = '<div class="table-container"><table><thead><tr>';
+    cols.forEach(function(c) {{
+        var cls = '';
+        var modeLabel = '';
+        if (window._sort.key === c.key) {{
+            if (window._sort.mode === 'asc') cls = 'sorted-asc';
+            else if (window._sort.mode === 'desc') cls = 'sorted-desc';
+            else if (window._sort.mode === 'abs') modeLabel = '<span class="sort-mode">(|Δ|)</span>';
+        }}
+        var tip = c.tip ? ' <span class="help-icon" title="' + c.tip.replace(/"/g, '&quot;') + '">?</span>' : '';
+        html += '<th class="' + cls + '" onclick="onHeaderClick(\\'' + c.key + '\\')">' + c.label + modeLabel + tip + '</th>';
+    }});
+    html += '</tr></thead><tbody>';
+
+    sorted.forEach(function(row) {{
         var changeStr, changeClass;
         if (row.status === 'new') {{
-            changeStr = 'NEW';
-            changeClass = 'text-blue';
+            changeStr = 'NEW'; changeClass = 'text-blue';
         }} else if (row.status === 'removed') {{
-            changeStr = 'REMOVED';
-            changeClass = 'text-muted';
+            changeStr = 'REMOVED'; changeClass = 'text-muted';
+        }} else if (row.changePct == null) {{
+            changeStr = '-'; changeClass = 'text-muted';
         }} else {{
             changeStr = (row.changePct >= 0 ? '+' : '') + row.changePct.toFixed(1) + '%';
             changeClass = row.changePct > 0 ? 'text-green' : (row.changePct < 0 ? 'text-red' : '');
@@ -355,10 +429,9 @@ async function compare() {{
         html += '<td>' + (row.realNew != null ? row.realNew : '-') + '</td>';
         html += '</tr>';
     }});
-
     html += '</tbody></table></div>';
 
-    var changed = rows.filter(function(r) {{ return r.status === 'both' && Math.abs(r.changePct) > 0.05; }}).length;
+    var changed = rows.filter(function(r) {{ return r.status === 'both' && r.changePct != null && Math.abs(r.changePct) > 0.05; }}).length;
     var added = rows.filter(function(r) {{ return r.status === 'new'; }}).length;
     var removed = rows.filter(function(r) {{ return r.status === 'removed'; }}).length;
 

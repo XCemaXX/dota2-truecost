@@ -99,12 +99,11 @@
         "duration": "2",
         "effects": [],
         "details": [
-          "The ability has the following properties: Interrupts the wielder's channeling abilities upon cast. The ability always self-casts upon cast. Ctrl enables casting Regenerate on an allied hero. Considers clones , illusions , and creep-heroes as heroes. Can be cast on untargetable allied heroes through their hero portrait.",
+          "The ability has the following properties: Interrupts the wielder's channeling abilities upon cast. The ability always self-casts upon cast. Ctrl enables casting Regenerate on an allied hero. Considers clones , illusions , and creep-heroes as heroes.",
           "Interrupts the wielder's channeling abilities upon cast.",
           "The ability always self-casts upon cast.",
-          "Ctrl enables casting Regenerate on an allied hero. Considers clones , illusions , and creep-heroes as heroes. Can be cast on untargetable allied heroes through their hero portrait.",
+          "Ctrl enables casting Regenerate on an allied hero. Considers clones , illusions , and creep-heroes as heroes.",
           "Considers clones , illusions , and creep-heroes as heroes.",
-          "Can be cast on untargetable allied heroes through their hero portrait.",
           "The Regenerate buff has the following properties: Reapplying the buff refreshes the duration. Dispels upon taking a 0-player-based damage instance ( after reductions ), regardless of factions .",
           "Reapplying the buff refreshes the duration.",
           "Dispels upon taking a 0-player-based damage instance ( after reductions ), regardless of factions .",
@@ -560,7 +559,36 @@
         "status_effects": {
           "modifier_smoke_of_deceit": "Smoke of Deceit: Invisible, moving x% faster, and hidden from the minimap. Attacking or moving within x range of an enemy hero or tower will break the invisibility."
         },
-        "misc": []
+        "misc": [
+          "The following abilities can expose silhouette of unit under Disguise Thirst Track Spinner's Snare [ ? ] Terrorize Thunder Strike Soul Release Chronosphere [ ? ] Reveal Ink Trail Bushwhack [ ? ] Corrosive Haze Dead in the Water Snowball",
+          "Thirst",
+          "Spinner's Snare [ ? ]",
+          "Terrorize",
+          "Thunder Strike",
+          "Soul Release",
+          "Chronosphere [ ? ]",
+          "Reveal",
+          "Ink Trail",
+          "Bushwhack [ ? ]",
+          "Corrosive Haze",
+          "Dead in the Water",
+          "Snowball",
+          "The following abilities can't expose unit under Disguise Fiend's Grip True Sight Soulbind Earthbind Gorgon's Grasp Curse of the Oldgrowth Life Drain Static Link [ ? ] Last Word Assassinate Spectral Dagger Charge of Darkness Nether Strike Battle Trance",
+          "Fiend's Grip",
+          "True Sight",
+          "Soulbind",
+          "Earthbind",
+          "Gorgon's Grasp",
+          "Curse of the Oldgrowth",
+          "Life Drain",
+          "Static Link [ ? ]",
+          "Last Word",
+          "Assassinate",
+          "Spectral Dagger",
+          "Charge of Darkness",
+          "Nether Strike",
+          "Battle Trance"
+        ]
       }
     ],
     "components": [],
@@ -1012,7 +1040,7 @@
     "item": "Chainmail",
     "group": "Equipment",
     "description": "Chainmail is an item purchasable at the Base Shop, under Equipment .",
-    "cost": 550,
+    "cost": 500,
     "stats": {
       "Armor": 4.0
     },
@@ -1110,16 +1138,23 @@
         "duration": null,
         "effects": [],
         "details": [
-          "The bonus damage is considered as a conditional attack damage bonus and is magical damage. Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the unit's attack damage. While is not considered by lifesteal, crit or cleave, it is considered by spell lifesteal. It can be reduced only by flat reductions (e.g. magical damage barrier ). Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions.",
-          "Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the unit's attack damage.",
-          "While is not considered by lifesteal, crit or cleave, it is considered by spell lifesteal.",
-          "It can be reduced only by flat reductions (e.g. magical damage barrier ).",
-          "Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions."
+          "The proc chance is determined during the unit's attack point , and uses pseudo-random distribution ( +8.47% and P( 12 ) = 100% ).",
+          "Pierce is a magical conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD .",
+          "interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources.",
+          "Spell Lifesteal .",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "Percentage-based bonus attack damage .",
+          "Critical strike .",
+          "Cleave .",
+          "Lifesteal .",
+          "Damage block sources."
         ],
         "status_effects": {},
         "misc": [
           "Does not work against buildings , but works against wards and allied units.",
-          "Adds an average of 15 magical damage to every attack.",
+          "Adds an average of 15 magical attack damage to every attack.",
           "Pierce uses pseudo-random distribution ."
         ]
       }
@@ -1307,6 +1342,19 @@
     "image_url": "https://liquipedia.net/commons/images/2/2a/Ring_of_Protection_itemicon_dota2_gameasset.png"
   },
   {
+    "item": "Splintmail",
+    "group": "Equipment",
+    "description": "Splintmail is an item purchasable at the Base Shop, under Equipment .",
+    "cost": 950,
+    "stats": {
+      "Armor": 7.0
+    },
+    "additional_info": [],
+    "abilities": [],
+    "components": [],
+    "image_url": "https://liquipedia.net/commons/images/a/ac/Splintmail_itemicon_dota2_gameasset.png"
+  },
+  {
     "item": "Blink Dagger",
     "group": "Miscellaneous",
     "description": "Blink Dagger is an item purchasable at the Base Shop, under Miscellaneous .",
@@ -1323,7 +1371,13 @@
         "effects": [],
         "details": [
           "Blink utilizes the teleport mechanic, and has the following properties: When targeting a point within 1200 distance, teleports directly onto the targeted point. When targeting a point beyond 1200 distance, teleports 1200 distance towards the targeted point instead. Incoming projectiles are disjointed upon teleporting.",
-          "Doubletap targets a point in front of the team's Fountain , following the same behavior as above. Locations of the fountains, relative to the center of the map: Radiant Fountain: -7456 / -6938 Dire Fountain: 7408 / 6848"
+          "When targeting a point within 1200 distance, teleports directly onto the targeted point.",
+          "When targeting a point beyond 1200 distance, teleports 1200 distance towards the targeted point instead.",
+          "Incoming projectiles are disjointed upon teleporting.",
+          "Doubletap targets a point in front of the team's Fountain , following the same behavior as above. Locations of the fountains, relative to the center of the map: Radiant Fountain: -7456 / -6938 Dire Fountain: 7408 / 6848",
+          "Locations of the fountains, relative to the center of the map:",
+          "Radiant Fountain: -7456 / -6938",
+          "Dire Fountain: 7408 / 6848"
         ],
         "status_effects": {},
         "misc": []
@@ -1349,15 +1403,28 @@
     "image_url": "https://liquipedia.net/commons/images/0/04/Boots_of_Speed_itemicon_dota2_gameasset.png"
   },
   {
+    "item": "Chasm Stone",
+    "group": "Miscellaneous",
+    "description": "Chasm Stone is an item purchasable at the Base Shop, under Miscellaneous .",
+    "cost": 800,
+    "stats": {
+      "AoE Radius": 40.0
+    },
+    "additional_info": [],
+    "abilities": [],
+    "components": [],
+    "image_url": "https://liquipedia.net/commons/images/0/0d/Chasm_Stone_itemicon_dota2_gameasset.png"
+  },
+  {
     "item": "Cloak",
     "group": "Miscellaneous",
     "description": "Cloak is an item purchasable at the Base Shop, under Miscellaneous .",
-    "cost": 800,
+    "cost": 900,
     "stats": {},
     "additional_info": [
       "Stacks multiplicatively with other magic resistance sources.",
-      "Increases most heroes' magic resistance to 40%.",
-      "With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.8%. [ ? ]"
+      "Increases most heroes' magic resistance to 38.5%.",
+      "With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.82%. [ ? ]"
     ],
     "abilities": [],
     "components": [],
@@ -1468,9 +1535,7 @@
         "cooldown": 22,
         "mana_cost": null,
         "duration": "4",
-        "effects": [
-          "+30% Magic Resistance"
-        ],
+        "effects": [],
         "details": [
           "Interrupts the caster's channeling abilities upon cast.",
           "Turns the caster ethereal , disarming them, rendering them attack immune , and granting 100% physical damage resistance. Magic resistance reduction of multiple ethereal sources does not stack, the one with higher value takes priority.",
@@ -1542,17 +1607,7 @@
         "duration": null,
         "effects": [],
         "details": [
-          "Lifesteal Only works with physical attack damage , does not work with magical or pure attack damage. Does not work with physical or any other spell damage . Does not work with instant attacks that do not trigger attack modifier. Stacks additively with other lifesteal sources. Treats illusions and creep-heroes as heroes. Does not work on the following units: Allied units . Buildings Couriers Ward-type units .",
-          "Only works with physical attack damage , does not work with magical or pure attack damage.",
-          "Does not work with physical or any other spell damage .",
-          "Does not work with instant attacks that do not trigger attack modifier.",
-          "Stacks additively with other lifesteal sources.",
-          "Treats illusions and creep-heroes as heroes.",
-          "Does not work on the following units: Allied units . Buildings Couriers Ward-type units .",
-          "Allied units .",
-          "Buildings",
-          "Couriers",
-          "Ward-type units ."
+          "Lifesteal Only works with physical attack damage , does not work with magical or pure attack damage. Does not work with physical or any other spell damage . Does not work with instant attacks that do not trigger attack modifier. Stacks additively with other lifesteal sources. Treats illusions and creep-heroes as heroes. Does not work on the following units: Allied units . Buildings Couriers Ward-type units ."
         ],
         "status_effects": {},
         "misc": []
@@ -1645,6 +1700,19 @@
     "image_url": "https://liquipedia.net/commons/images/f/fc/Shadow_Amulet_itemicon_dota2_gameasset.png"
   },
   {
+    "item": "Shawl",
+    "group": "Miscellaneous",
+    "description": "Shawl is an item purchasable at the Base Shop, under Miscellaneous .",
+    "cost": 450,
+    "stats": {},
+    "additional_info": [
+      "Stacks multiplicatively with other magic resistance sources."
+    ],
+    "abilities": [],
+    "components": [],
+    "image_url": "https://liquipedia.net/commons/images/4/42/Shawl_itemicon_dota2_gameasset.png"
+  },
+  {
     "item": "Void Stone",
     "group": "Miscellaneous",
     "description": "Void Stone is an item purchasable at the Base Shop, under Miscellaneous .",
@@ -1714,19 +1782,17 @@
     "image_url": "https://liquipedia.net/commons/images/c/c8/Wind_Lace_itemicon_dota2_gameasset.png"
   },
   {
-    "item": "Cornucopia",
-    "group": "Secret Shop",
-    "description": "Cornucopia is an item purchasable at the Secret Shop .",
-    "cost": 1200,
+    "item": "Wizard Hat",
+    "group": "Miscellaneous",
+    "description": "Wizard Hat is an item purchasable at the Base Shop, under Miscellaneous .",
+    "cost": 250,
     "stats": {
-      "Health Regeneration": 5.0,
-      "Mana Regeneration": 2.0,
-      "Attack Damage": 7.0
+      "Mana": 125.0
     },
     "additional_info": [],
     "abilities": [],
     "components": [],
-    "image_url": "https://liquipedia.net/commons/images/4/4d/Cornucopia_itemicon_dota2_gameasset.png"
+    "image_url": "https://liquipedia.net/commons/images/3/35/Wizard_Hat_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Demon Edge",
@@ -1881,7 +1947,7 @@
     "cost": 1300,
     "stats": {},
     "additional_info": [
-      "Evasion uses pseudo-random distribution .",
+      "The evasion proc is determined the attack projectile impact, and uses pseudo-random distribution ( +3.22% and P( 32 ) = 100% ).",
       "Stacks diminishingly with other evasion sources.",
       "Increases most heroes against physical attacks by 17.65%."
     ],
@@ -1984,7 +2050,16 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Boots of Speed",
+        "cost": 500
+      },
+      {
+        "name": "Recipe",
+        "cost": 2000
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/2/20/Boots_of_Travel_itemicon_dota2_gameasset.png"
   },
   {
@@ -2141,7 +2216,24 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Magic Stick",
+        "cost": 200
+      },
+      {
+        "name": "Iron Branch",
+        "cost": 55
+      },
+      {
+        "name": "Iron Branch",
+        "cost": 55
+      },
+      {
+        "name": "Recipe",
+        "cost": 150
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/7/7a/Magic_Wand_itemicon_dota2_gameasset.png"
   },
   {
@@ -2190,7 +2282,9 @@
           "Couriers",
           "Ward-type units ."
         ],
-        "status_effects": {},
+        "status_effects": {
+          "modifier_item_mask_of_madness": "Hidden Modifier"
+        },
         "misc": []
       }
     ],
@@ -2309,7 +2403,7 @@
     "cost": 1625,
     "stats": {
       "Intelligence": 10.0,
-      "Mana Regeneration": 1.0,
+      "Mana Regeneration": 1.25,
       "Attack Speed": 35.0
     },
     "additional_info": [
@@ -2319,7 +2413,20 @@
       "4.5 main attack damage to universal heroes."
     ],
     "abilities": [],
-    "components": [],
+    "components": [
+      {
+        "name": "Blitz Knuckles",
+        "cost": 1000
+      },
+      {
+        "name": "Sage's Mask",
+        "cost": 175
+      },
+      {
+        "name": "Robe of the Magi",
+        "cost": 450
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/6/6e/Oblivion_Staff_itemicon_dota2_gameasset.png"
   },
   {
@@ -2383,19 +2490,28 @@
     "description": "Perseverance is an item purchasable at the Base Shop, under Accessories . However, it is assembled entirely with items from the Secret Shop .",
     "cost": 1400,
     "stats": {
-      "Health Regeneration": 6.5,
+      "Health Regeneration": 5.5,
       "Mana Regeneration": 2.25
     },
     "additional_info": [],
     "abilities": [],
-    "components": [],
+    "components": [
+      {
+        "name": "Ring of Health",
+        "cost": 700
+      },
+      {
+        "name": "Void Stone",
+        "cost": 700
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/b/bb/Perseverance_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Phase Boots",
     "group": "Accessories",
     "description": "Phase Boots is an item purchasable at the Base Shop, under Accessories .",
-    "cost": 1500,
+    "cost": 1450,
     "stats": {
       "Armor": 4.0,
       "Move Speed": 50.0
@@ -2435,7 +2551,7 @@
       },
       {
         "name": "Chainmail",
-        "cost": 550
+        "cost": 500
       },
       {
         "name": "Blades of Attack",
@@ -2506,7 +2622,20 @@
     },
     "additional_info": [],
     "abilities": [],
-    "components": [],
+    "components": [
+      {
+        "name": "Vitality Booster",
+        "cost": 1000
+      },
+      {
+        "name": "Energy Booster",
+        "cost": 800
+      },
+      {
+        "name": "Point Booster",
+        "cost": 1200
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/6/63/Soul_Booster_itemicon_dota2_gameasset.png"
   },
   {
@@ -2606,8 +2735,9 @@
     "item": "Arcane Boots",
     "group": "Support",
     "description": "Arcane Boots are an item purchasable at the Base Shop, under Support .",
-    "cost": 1400,
+    "cost": 1500,
     "stats": {
+      "Mana": 125.0,
       "Mana Regeneration": 0.25,
       "Move Speed": 45.0
     },
@@ -2651,7 +2781,24 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Boots of Speed",
+        "cost": 500
+      },
+      {
+        "name": "Ring of Basilius",
+        "cost": 425
+      },
+      {
+        "name": "Wizard Hat",
+        "cost": 250
+      },
+      {
+        "name": "Recipe",
+        "cost": 325
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/7/75/Arcane_Boots_itemicon_dota2_gameasset.png"
   },
   {
@@ -2661,7 +2808,6 @@
     "cost": 4225,
     "stats": {
       "Strength": 8.0,
-      "Intelligence": 8.0,
       "Health Regeneration": 18.0,
       "Move Speed": 65.0
     },
@@ -2670,9 +2816,8 @@
       "If a Drum of Endurance was purchased as well, Boots of Bearing's icon takes priority.",
       "The item's attributes grant the following additional stats:",
       "176 health and 0.8 health regeneration .",
-      "96 mana , 0.4 mana regeneration and 0.8% flat base magic resistance .",
-      "8 main attack damage to / heroes.",
-      "7.2 main attack damage to universal heroes.",
+      "8 main attack damage to heroes.",
+      "3.6 main attack damage to universal heroes.",
       "Movement speed bonuses from multiple pairs of Boots of Speed -based items do not stack.",
       "Stacks with all other movement speed bonus.",
       "With the Swiftness Aura , the item grants a total 85 movement speed to the wielder.",
@@ -2731,55 +2876,20 @@
     "image_url": "https://liquipedia.net/commons/images/2/2f/Boots_of_Bearing_itemicon_dota2_gameasset.png"
   },
   {
-    "item": "Buckler",
-    "group": "Support",
-    "description": "Buckler is an item purchasable at the Base Shop, under Support .",
-    "cost": 425,
-    "stats": {
-      "Armor": 1.0
-    },
-    "additional_info": [
-      "With Buckler Aura , the item grants a total of 3 armor to the wielder."
-    ],
-    "abilities": [
-      {
-        "name": "Buckler Aura",
-        "description": "Increases the armor of nearby player-controlled allies.",
-        "cooldown": null,
-        "mana_cost": null,
-        "duration": "0",
-        "effects": [],
-        "details": [
-          "Multiple instances of Buckler Aura do not stack. Fully stacks with other sources of Buckler-based items' armor aura .",
-          "Fully stacks with other sources of Buckler-based items' armor aura .",
-          "Does not affect invulnerable units."
-        ],
-        "status_effects": {
-          "modifier_item_buckler_effect": "Buckler Armor Bonus: Armor increased by x."
-        },
-        "misc": []
-      }
-    ],
-    "components": [],
-    "image_url": "https://liquipedia.net/commons/images/f/f1/Buckler_itemicon_dota2_gameasset.png"
-  },
-  {
     "item": "Drum of Endurance",
     "group": "Support",
     "description": "Drum of Endurance is an item purchasable at the Base Shop, under Support .",
     "cost": 1625,
     "stats": {
-      "Strength": 7.0,
-      "Intelligence": 7.0
+      "Strength": 8.0
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
       "If a Boots of Bearing was purchased as well, Boots of Bearing's icon takes priority.",
       "The item's attributes grant the following additional stats:",
-      "154 health and 0.7 health regeneration .",
-      "84 mana , 0.35 mana regeneration and 0.7% flat base magic resistance .",
-      "7 main attack damage to / heroes.",
-      "6.3 main attack damage to universal heroes.",
+      "176 health and 0.8 health regeneration .",
+      "8 main attack damage to heroes.",
+      "3.6 main attack damage to universal heroes.",
       "Drum of Endurance is a permanent item, using up all charges does not make it disappear.",
       "The sell value of the item does not depend on the remaining charges."
     ],
@@ -2819,16 +2929,113 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Headdress",
+        "cost": 425
+      },
+      {
+        "name": "Belt of Strength",
+        "cost": 450
+      },
+      {
+        "name": "Wind Lace",
+        "cost": 225
+      },
+      {
+        "name": "Recipe",
+        "cost": 525
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/9/95/Drum_of_Endurance_itemicon_dota2_gameasset.png"
+  },
+  {
+    "item": "Essence Distiller",
+    "group": "Support",
+    "description": "Essence Distiller is an item purchasable at the Base Shop, under Support .",
+    "cost": 1775,
+    "stats": {
+      "Strength": 3.0,
+      "Agility": 3.0,
+      "Intelligence": 3.0,
+      "Mana": 150.0,
+      "Mana Regeneration": 1.75,
+      "Armor": 5.0
+    },
+    "additional_info": [
+      "The item's attributes grant the following additional stats:",
+      "66 health and 0.3 health regeneration .",
+      "36 mana , 0.15 mana regeneration and 0.3% flat base magic resistance .",
+      "3 attack speed and 0.5 main armor .",
+      "3 main attack damage to all / / heroes.",
+      "4.05 main attack damage to universal heroes."
+    ],
+    "abilities": [
+      {
+        "name": "Soul Release",
+        "description": "When cast on an ally, consumes a charge to grant the target allied hero bonus health regeneration for a while.",
+        "cooldown": 10,
+        "mana_cost": 0,
+        "duration": "8",
+        "effects": [],
+        "details": [
+          "Cast behaviors: ↓↓ Double-tapping automatically targets self. Does not interrupt the wielder's channeling abilities. The caster does not require to face the target ino order to cast it on them Can only be cast on heroes, including illusions and creep-heroes .",
+          "↓↓ Double-tapping automatically targets self.",
+          "Does not interrupt the wielder's channeling abilities.",
+          "The caster does not require to face the target ino order to cast it on them",
+          "Can only be cast on heroes, including illusions and creep-heroes .",
+          "Charges Gains charge for each enemy hero that dies within the radius. If the item is at 0 charges, it gains charges at once, otherwise, it gains charge. Does not gain charges from Illusions , Clones , or Creep-Heroes . Does not gain a charge if the enemy hero has Reincarnation . Has to be within the main inventory to gain charges.",
+          "Gains charge for each enemy hero that dies within the radius.",
+          "If the item is at 0 charges, it gains charges at once, otherwise, it gains charge.",
+          "Does not gain charges from Illusions , Clones , or Creep-Heroes .",
+          "Does not gain a charge if the enemy hero has Reincarnation .",
+          "Has to be within the main inventory to gain charges.",
+          "item_invisibility_edge_windwalk Successive casts on the same target do not stack but refresh the duration instead. Essence Distiller's modifiers override the modifiers of Urn of Shadows .",
+          "Successive casts on the same target do not stack but refresh the duration instead.",
+          "Essence Distiller's modifiers override the modifiers of Urn of Shadows .",
+          "Essence Distiller has the following properties for how they gain charges: With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has an Urn of Shadows as well, the Essence Distiller takes priority. If the player has a Spirit Vessel as well, both the Essence Distiller and Spirit Vessel gain charges. With multiple copies within the team: Only the closest player to the dying hero receives charges However, every player with an Urn of Shadows and the closest player with a Spirit Vessel can still gain charges from the same enemy death.",
+          "With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has an Urn of Shadows as well, the Essence Distiller takes priority. If the player has a Spirit Vessel as well, both the Essence Distiller and Spirit Vessel gain charges.",
+          "The one in the higher inventory slot gains charges.",
+          "The top left inventory slot has the highest priority, the bottom right one the lowest.",
+          "The item must be in the main inventory to gain charges.",
+          "If the player has an Urn of Shadows as well, the Essence Distiller takes priority.",
+          "If the player has a Spirit Vessel as well, both the Essence Distiller and Spirit Vessel gain charges.",
+          "With multiple copies within the team: Only the closest player to the dying hero receives charges However, every player with an Urn of Shadows and the closest player with a Spirit Vessel can still gain charges from the same enemy death.",
+          "Only the closest player to the dying hero receives charges",
+          "However, every player with an Urn of Shadows and the closest player with a Spirit Vessel can still gain charges from the same enemy death."
+        ],
+        "status_effects": {},
+        "misc": []
+      }
+    ],
+    "components": [
+      {
+        "name": "Urn of Shadows",
+        "cost": 825
+      },
+      {
+        "name": "Chainmail",
+        "cost": 500
+      },
+      {
+        "name": "Wizard Hat",
+        "cost": 250
+      },
+      {
+        "name": "Recipe",
+        "cost": 200
+      }
+    ],
+    "image_url": "https://liquipedia.net/commons/images/4/4f/Essence_Distiller_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Guardian Greaves",
     "group": "Support",
     "description": "Guardian Greaves is an item purchasable at the Base Shop, under Support . However, it requires an item from the Secret Shop to be completed.",
-    "cost": 4300,
+    "cost": 4450,
     "stats": {
-      "Mana Regeneration": 1.5,
+      "Mana": 150.0,
+      "Mana Regeneration": 1.0,
       "Armor": 5.0,
       "Move Speed": 50.0
     },
@@ -2892,11 +3099,11 @@
       },
       {
         "name": "Arcane Boots",
-        "cost": 1400
+        "cost": 1500
       },
       {
         "name": "Recipe",
-        "cost": 1125
+        "cost": 1175
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/a/a7/Guardian_Greaves_itemicon_dota2_gameasset.png"
@@ -2930,7 +3137,16 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Ring of Regen",
+        "cost": 175
+      },
+      {
+        "name": "Recipe",
+        "cost": 250
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/f/f4/Headdress_itemicon_dota2_gameasset.png"
   },
   {
@@ -2964,7 +3180,7 @@
           "Charges Gains 1 charge for each ability cast by an enemy. Does not gain charges from the following abilities: Active attack modifiers . / Toggle -able abilities. Other sources listed here . Active abilities that are procced passively (i.e. Quill Spray ). Abilities cast out of Invisibility , even if the ast breaks the invisibility. This is due to the vision requirement, the ability cast is registered first, then the invisibility is broken.",
           "All Magic Stick -based items have the following properties: With multiple copies within the inventory: If multiple are present, the oldest item gains charges first. If the oldest is at max charges, the next oldest starts gaining charges.",
           "The heal amplification buff is applied before the heal is applied.",
-          "Can heal up to 467.5 with max charges.",
+          "Can heal up to 488.75 with max charges.",
           "Can mana restore up to 425 with max charges."
         ],
         "status_effects": {},
@@ -3048,17 +3264,30 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Headdress",
+        "cost": 425
+      },
+      {
+        "name": "Chainmail",
+        "cost": 500
+      },
+      {
+        "name": "Recipe",
+        "cost": 850
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/3/32/Mekansm_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Pavise",
     "group": "Support",
     "description": "Pavise is an item purchasable at the Base Shop, under Support .",
-    "cost": 1400,
+    "cost": 1350,
     "stats": {
       "Health": 175.0,
-      "Mana": 250.0,
+      "Mana": 175.0,
       "Armor": 3.0
     },
     "additional_info": [
@@ -3086,7 +3315,24 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Wizard Hat",
+        "cost": 250
+      },
+      {
+        "name": "Fluffy Hat",
+        "cost": 250
+      },
+      {
+        "name": "Ring of Protection",
+        "cost": 175
+      },
+      {
+        "name": "Recipe",
+        "cost": 675
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/7/74/Pavise_itemicon_dota2_gameasset.png"
   },
   {
@@ -3101,9 +3347,8 @@
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
       "Stacks multiplicatively with other magic resistance sources.",
       "With Insight Aura , the item grants a total of the following bonuses to its wielder:",
-      "16.5 health regeneration bonus.",
-      "Increases the wielder's magic resistance to 44.8%.",
-      "Every 10 points of intelligence further increases the total magic resistance by 0.736% for the wielder."
+      "Increases the wielder's magic resistance to 70%.",
+      "Every 10 points of intelligence further increases the total magic resistance by 0.4% for the wielder."
     ],
     "abilities": [
       {
@@ -3138,10 +3383,9 @@
           "+8% Magic Resistance"
         ],
         "details": [
-          "Can regenerate up to 150 health in one minute.",
-          "Stacks multiplicatively with other magic resistance sources. Increases most heroes' magic resistance to 31%. With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.92%. [ ? ]",
-          "Increases most heroes' magic resistance to 31%.",
-          "With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.92%. [ ? ]",
+          "Stacks multiplicatively with other magic resistance sources. Increases most heroes' magic resistance to 62.5%. With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.5%. [ ? ]",
+          "Increases most heroes' magic resistance to 62.5%.",
+          "With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.5%. [ ? ]",
           "Does not affect invulnerable units."
         ],
         "status_effects": {
@@ -3152,20 +3396,20 @@
     ],
     "components": [
       {
-        "name": "Cloak",
-        "cost": 800
-      },
-      {
-        "name": "Headdress",
-        "cost": 425
-      },
-      {
         "name": "Ring of Tarrasque",
         "cost": 1700
       },
       {
+        "name": "Cloak",
+        "cost": 900
+      },
+      {
+        "name": "Shawl",
+        "cost": 450
+      },
+      {
         "name": "Recipe",
-        "cost": 800
+        "cost": 675
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/e/ec/Pipe_of_Insight_itemicon_dota2_gameasset.png"
@@ -3199,7 +3443,16 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Sage's Mask",
+        "cost": 175
+      },
+      {
+        "name": "Recipe",
+        "cost": 250
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/e/e0/Ring_of_Basilius_itemicon_dota2_gameasset.png"
   },
   {
@@ -3208,23 +3461,16 @@
     "description": "Solar Crest is an item purchasable at the Base Shop, under Support .",
     "cost": 2575,
     "stats": {
-      "Strength": 4.0,
-      "Agility": 4.0,
-      "Intelligence": 4.0,
       "Health": 200.0,
-      "Mana": 300.0,
-      "Armor": 4.0,
+      "Mana": 200.0,
+      "Armor": 7.0,
       "Move Speed": 25.0
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
       "If a Pavise was purchased as well, Solar Crest's icon takes priority.",
       "The item's attributes grant the following additional stats:",
-      "88 health and 0.4 health regeneration .",
-      "48 mana , 0.2 mana regeneration and 0.4% flat base magic resistance .",
-      "4 attack speed and 0.67 main armor .",
-      "4 main attack damage to all / / heroes.",
-      "5.4 main attack damage to universal heroes.",
+      "main attack damage to .",
       "Movement speed bonuses from multiple Solar Crests fully stack.",
       "Stacks with all other movement speed bonuses."
     ],
@@ -3255,11 +3501,11 @@
     "components": [
       {
         "name": "Pavise",
-        "cost": 1400
+        "cost": 1350
       },
       {
-        "name": "Crown",
-        "cost": 450
+        "name": "Chainmail",
+        "cost": 500
       },
       {
         "name": "Wind Lace",
@@ -3317,15 +3563,16 @@
           "item_invisibility_edge_windwalk Successive casts on the same target do not stack but refresh the duration instead. Spirit Vessel's modifiers override the modifiers of Urn of Shadows .",
           "Successive casts on the same target do not stack but refresh the duration instead.",
           "Spirit Vessel's modifiers override the modifiers of Urn of Shadows .",
-          "Spirit Vessel has the following properties for how they gain charges: With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has an Urn of Shadows as well, the Spirit Vessel takes priority. With multiple copies within the team: Only the closest player to the dying hero receives charges However, every player with a Urn of Shadows can still gain charges from the same enemy death.",
-          "With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has an Urn of Shadows as well, the Spirit Vessel takes priority.",
+          "Spirit Vessel has the following properties for how they gain charges: With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has an Urn of Shadows as well, the Spirit Vessel takes priority. If the player has an Essence Distiller as well, both the Spirit Vessel and Essence Distiller gain charges. With multiple copies within the team: Only the closest player to the dying hero receives charges However, every player with an Urn of Shadows and the closest player with an Essence Distiller can still gain charges from the same enemy death.",
+          "With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has an Urn of Shadows as well, the Spirit Vessel takes priority. If the player has an Essence Distiller as well, both the Spirit Vessel and Essence Distiller gain charges.",
           "The one in the higher inventory slot gains charges.",
           "The top left inventory slot has the highest priority, the bottom right one the lowest.",
           "The item must be in the main inventory to gain charges.",
           "If the player has an Urn of Shadows as well, the Spirit Vessel takes priority.",
-          "With multiple copies within the team: Only the closest player to the dying hero receives charges However, every player with a Urn of Shadows can still gain charges from the same enemy death.",
+          "If the player has an Essence Distiller as well, both the Spirit Vessel and Essence Distiller gain charges.",
+          "With multiple copies within the team: Only the closest player to the dying hero receives charges However, every player with an Urn of Shadows and the closest player with an Essence Distiller can still gain charges from the same enemy death.",
           "Only the closest player to the dying hero receives charges",
-          "However, every player with a Urn of Shadows can still gain charges from the same enemy death."
+          "However, every player with an Urn of Shadows and the closest player with an Essence Distiller can still gain charges from the same enemy death."
         ],
         "status_effects": {
           "modifier_item_spirit_vessel_heal": "Spirit Vessel Heal: Regenerating x HP per second.",
@@ -3379,13 +3626,27 @@
           "Only triggers when the wielder's attacks land, or when an attack lands on the wielder. This means missed or disjointed attacks do not trigger Break. Also reacts on instant attacks that normally do not trigger on-attack effects.",
           "This means missed or disjointed attacks do not trigger Break.",
           "Also reacts on instant attacks that normally do not trigger on-attack effects.",
-          "Does not break upon attacking non-hero units. Treats creep-heroes as creeps."
+          "Does not break upon attacking non-hero units. Treats creep-heroes as creeps.",
+          "Goes on cooldown if disassembled . Reassembling the item will remember the time remaining."
         ],
         "status_effects": {},
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Boots of Speed",
+        "cost": 500
+      },
+      {
+        "name": "Wind Lace",
+        "cost": 225
+      },
+      {
+        "name": "Ring of Regen",
+        "cost": 175
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/c/cf/Tranquil_Boots_%28Active%29_itemicon_dota2_gameasset.png"
   },
   {
@@ -3430,18 +3691,18 @@
           "Does not gain charges from Illusions , Clones , or Creep-Heroes .",
           "Does not gain a charge if the enemy hero has Reincarnation .",
           "Has to be within the main inventory to gain charges.",
-          "item_invisibility_edge_windwalk Successive casts on the same target do not stack but refresh the duration instead. Urn of Shadows' modifiers get both overridden by Spirit Vessel 's modifiers. Casting Urn of Shadows on a unit that is already affected by Spirit Vessel puts the item on cooldown. Neither its modifiers are placed, nor are the Spirit Vessel modifiers refreshed. Urn of Shadows does not lose a charge when doing so.",
+          "item_invisibility_edge_windwalk Successive casts on the same target do not stack but refresh the duration instead. Urn of Shadows' modifiers get both overridden by Spirit Vessel 's and Essence Distiller 's modifiers. Casting Urn of Shadows on a unit that is already affected by Spirit Vessel puts the item on cooldown. Neither its modifiers are placed, nor are the Spirit Vessel modifiers refreshed. Urn of Shadows does not lose a charge when doing so.",
           "Successive casts on the same target do not stack but refresh the duration instead.",
-          "Urn of Shadows' modifiers get both overridden by Spirit Vessel 's modifiers.",
+          "Urn of Shadows' modifiers get both overridden by Spirit Vessel 's and Essence Distiller 's modifiers.",
           "Casting Urn of Shadows on a unit that is already affected by Spirit Vessel puts the item on cooldown. Neither its modifiers are placed, nor are the Spirit Vessel modifiers refreshed. Urn of Shadows does not lose a charge when doing so.",
           "Neither its modifiers are placed, nor are the Spirit Vessel modifiers refreshed.",
           "Urn of Shadows does not lose a charge when doing so.",
-          "Urn of Shadows has the following properties for how they gain charges: With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has a Spirit Vessel as well, the Spirit Vessel takes priority. With multiple copies within the team: Every player in the team can gain charges from the same enemy death.",
-          "With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has a Spirit Vessel as well, the Spirit Vessel takes priority.",
+          "Urn of Shadows has the following properties for how they gain charges: With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has a Spirit Vessel or Essence Distiller as well, they will take priority. With multiple copies within the team: Every player in the team can gain charges from the same enemy death.",
+          "With multiple copies within the inventory: The one in the higher inventory slot gains charges. The top left inventory slot has the highest priority, the bottom right one the lowest. The item must be in the main inventory to gain charges. If the player has a Spirit Vessel or Essence Distiller as well, they will take priority.",
           "The one in the higher inventory slot gains charges.",
           "The top left inventory slot has the highest priority, the bottom right one the lowest.",
           "The item must be in the main inventory to gain charges.",
-          "If the player has a Spirit Vessel as well, the Spirit Vessel takes priority.",
+          "If the player has a Spirit Vessel or Essence Distiller as well, they will take priority.",
           "With multiple copies within the team: Every player in the team can gain charges from the same enemy death.",
           "Every player in the team can gain charges from the same enemy death."
         ],
@@ -3451,11 +3712,29 @@
         },
         "misc": [
           "Can regenerate up to 240 health on target allies.",
-          "Can deal up to 200 damage to target enemies ( before reductions )."
+          "Can deal up to 200 damage to target enemies ( before reductions ).",
+          "Not affected by debuff duration manipulation ."
         ]
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Circlet",
+        "cost": 155
+      },
+      {
+        "name": "Sage's Mask",
+        "cost": 175
+      },
+      {
+        "name": "Ring of Protection",
+        "cost": 175
+      },
+      {
+        "name": "Recipe",
+        "cost": 320
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/a/a4/Urn_of_Shadows_itemicon_dota2_gameasset.png"
   },
   {
@@ -3531,7 +3810,8 @@
     "cost": 2275,
     "stats": {
       "Mana": 300.0,
-      "Mana Regeneration": 2.5
+      "Mana Regeneration": 2.5,
+      "Cast Range": 225.0
     },
     "additional_info": [
       "Aether Lens increases the effect range differently per ability.",
@@ -3540,23 +3820,7 @@
       "Abilities with Global cast range have their max distance increased instead.",
       "All vector targeted abilities have their cast range increased but not their effect range."
     ],
-    "abilities": [
-      {
-        "name": "Aethereal Focus",
-        "description": "Increases the wielder's cast range for all targeted abilities and items.",
-        "cooldown": null,
-        "mana_cost": null,
-        "duration": null,
-        "effects": [],
-        "details": [
-          "Stacks with other cast range increasing items or with ability specific talents . Does not stack with the cast range bonus of other Aether Lenses.",
-          "Only affects ability cast range.",
-          "Does not increase the ability's radius or area of effect. Does not increase the cast range of active attack modifiers ."
-        ],
-        "status_effects": {},
-        "misc": []
-      }
-    ],
+    "abilities": [],
     "components": [
       {
         "name": "Energy Booster",
@@ -3614,18 +3878,35 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Point Booster",
+        "cost": 1200
+      },
+      {
+        "name": "Staff of Wizardry",
+        "cost": 1000
+      },
+      {
+        "name": "Ogre Axe",
+        "cost": 1000
+      },
+      {
+        "name": "Blade of Alacrity",
+        "cost": 1000
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/1/1b/Aghanim%27s_Scepter_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Bloodstone",
     "group": "Magical",
     "description": "The Bloodstone is an item listed at the Base Shop, under Magical . However, it requires items from the Secret Shop to be assembled.",
-    "cost": 4350,
+    "cost": 4700,
     "stats": {
-      "Health": 450.0,
-      "Mana": 450.0,
-      "Mana Regeneration": 3.0
+      "Intelligence": 15.0,
+      "Health": 650.0,
+      "Mana": 450.0
     },
     "additional_info": [
       "Spell lifesteal from different sources stacks additively.",
@@ -3634,61 +3915,144 @@
     "abilities": [
       {
         "name": "Bloodpact",
-        "description": "Applies a basic dispel and greatly increases the passive spell lifesteal for a while.",
+        "description": "Greatly increases the passive spell lifesteal for a while.",
         "cooldown": 30,
         "mana_cost": null,
         "duration": "5",
         "effects": [],
         "details": [
           "Interrupts the caster's channeling abilities upon cast.",
-          "Applies a basic dispel on the user upon cast.",
-          "Increases Bloodstone's spell lifesteal against heroes to 75% and against creeps to 15%.",
-          "Does not apply the buff if the caster has been affected by it in the last seconds. A status buff icon on the caster shows how much time is left for it to be able to get affected by Bloodpact again. The buff duration is set upon cast and is affected by cooldown manipulation.",
-          "A status buff icon on the caster shows how much time is left for it to be able to get affected by Bloodpact again.",
-          "The buff duration is set upon cast and is affected by cooldown manipulation."
+          "Increases Bloodstone's spell lifesteal to 60% / 12% ."
         ],
         "status_effects": {
-          "modifier_item_bloodstone_active": "Bloodpact: Regenerating x HP per second.",
-          "modifier_item_bloodstone_drained": "Drained: Bloodpact's Bonuses will not apply to a unit that's drained."
+          "modifier_item_bloodstone_active": "Bloodpact: Regenerating x HP per second."
+        },
+        "misc": []
+      },
+      {
+        "name": "Spell Weakness Aura",
+        "description": "Weakens nearby enemies by applying a debuff that amplifies any spell damage they take.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": null,
+        "effects": [],
+        "details": [
+          "Applies generic incoming damage amplification on affected enemy units. Only affects spell damage of all damage types, does not affect attack damage. Does not affect damage flagged as HP Removal . Stacks additively with other sources of generic incoming damage manipulation, but not with Spell Weakness .",
+          "Only affects spell damage of all damage types, does not affect attack damage.",
+          "Does not affect damage flagged as HP Removal .",
+          "Stacks additively with other sources of generic incoming damage manipulation, but not with Spell Weakness .",
+          "Affects invulnerable units as well."
+        ],
+        "status_effects": {
+          "modifier_item_bloodstone_debuff": "Spell Weakness Aura: Spell damage increased by x%."
         },
         "misc": []
       }
     ],
     "components": [
       {
-        "name": "Voodoo Mask",
-        "cost": 650
+        "name": "Veil of Discord",
+        "cost": 1700
+      },
+      {
+        "name": "Soul Booster",
+        "cost": 3000
+      }
+    ],
+    "image_url": "https://liquipedia.net/commons/images/8/87/Bloodstone_itemicon_dota2_gameasset.png"
+  },
+  {
+    "item": "Crella's Crozier",
+    "group": "Magical",
+    "description": "Crella's Crozier is an item purchasable at the Base Shop, under Support .",
+    "cost": 4800,
+    "stats": {
+      "Strength": 6.0,
+      "Agility": 6.0,
+      "Intelligence": 6.0,
+      "Health": 450.0,
+      "Mana": 450.0
+    },
+    "additional_info": [
+      "The item's attributes grant the following additional stats:",
+      "132 health and 0.6 health regeneration .",
+      "72 mana , 0.3 mana regeneration and 0.6% flat base magic resistance .",
+      "6 attack speed and 1 main armor .",
+      "6 main attack damage to all / / heroes.",
+      "8.1 main attack damage to universal heroes."
+    ],
+    "abilities": [
+      {
+        "name": "Rite of Rumusque",
+        "description": "You enter ghost form for 4 seconds, becoming immune to physical damage, but are unable to attack and 30% more vulnerable to magic damage.Steal 5% movement speed from enemy heroes in 900 range every second. Movement speed steal lasts 1.5s.Putrefaction Aura's effect is increased to 75%. All of the lostHealth Restorationis redirected to you every second.",
+        "cooldown": 20,
+        "mana_cost": null,
+        "duration": "4",
+        "effects": [],
+        "details": [
+          "Interrupts the caster's channeling abilities upon cast.",
+          "Turns the caster ethereal , disarming them, rendering them attack immune , and granting 100% physical damage resistance. Magic resistance reduction of multiple ethereal sources does not stack, the one with higher value takes priority.",
+          "Magic resistance reduction of multiple ethereal sources does not stack, the one with higher value takes priority.",
+          "Stacks multiplicatively with other magic resistance sources."
+        ],
+        "status_effects": {
+          "modifier_ghost_state": "Ghost Form: Ethereal Form. Taking x% increased magic damage and cannot attack or be attacked.",
+          "modifier_item_crellas_crozier_active": "Rite of Rumusque: Stealing movement speed from nearby enemy heroes. Nearby enemy heroes' Health Restoration is partially redirected to the wielder."
+        },
+        "misc": []
+      },
+      {
+        "name": "Putrefaction Aura",
+        "description": "Reduces nearby enemy heroes' Health Restoration by 30%.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": null,
+        "effects": [],
+        "details": [],
+        "status_effects": {
+          "modifier_item_crellas_crozier_debuff": "Putrefaction Aura: Health Restoration reduced by x%."
+        },
+        "misc": []
+      }
+    ],
+    "components": [
+      {
+        "name": "Ghost Scepter",
+        "cost": 1500
       },
       {
         "name": "Soul Booster",
         "cost": 3000
       },
       {
-        "name": "Void Stone",
-        "cost": 700
+        "name": "Recipe",
+        "cost": 300
       }
     ],
-    "image_url": "https://liquipedia.net/commons/images/8/87/Bloodstone_itemicon_dota2_gameasset.png"
+    "image_url": "https://liquipedia.net/commons/images/2/26/Crella%27s_Crozier_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Dagon",
     "group": "Magical",
     "description": "Dagon is an upgradable item purchasable at the Base Shop, under Magical .",
-    "cost": 2800,
+    "cost": 3050,
     "stats": {
-      "Strength": 15.0,
-      "Agility": 15.0,
-      "Intelligence": 15.0
+      "Strength": 10.0,
+      "Agility": 10.0,
+      "Intelligence": 10.0,
+      "Health": 240.0,
+      "Mana": 450.0,
+      "Cast Range": 180.0
     },
     "additional_info": [
       "The item's attributes grants the following bonuses:",
-      "154/198/242/286/330 health and 0.7/0.9/1.1/1.3/1.5 health regeneration .",
-      "84/108/132/156/180 mana , 0.35/0.45/0.55/0.65/0.75 mana regeneration and 0.7/0.9/1.1/1.3/1.5 % magic resistance .",
-      "7/9/11/13/15 attack speed bonus and 1.17/1.5/1.83/2.17/2.5 main armor .",
-      "7/9/11/13/15 main attack damage to / / heroes and 9.45/12.15/14.85/17.55/20.25 main attack damage to heroes.",
+      "132/154/176/198/220 health and 0.6/0.7/0.8/0.9/1 health regeneration .",
+      "72/84/96/108/120 mana , 0.3/0.35/0.4/0.45/0.5 mana regeneration and 0.6/0.7/0.8/0.9/1 % magic resistance .",
+      "6/7/8/9/10 attack speed bonus and 1/1.17/1.33/1.5/1.67 main armor .",
+      "6/7/8/9/10 main attack damage to / / heroes and 8.1/9.45/10.8/12.15/13.5 main attack damage to heroes.",
       "Dagon can be upgraded by purchasing the recipe again, up to 4 times.",
       "Upgrading the item improves its stats and also Energy Burst .",
-      "The total gold cost for each level is 2850 / / / / ."
+      "The total gold cost for each level is 3050 / 4200 / 5350 / 6500 / 7650 ."
     ],
     "abilities": [
       {
@@ -3699,18 +4063,32 @@
         "duration": null,
         "effects": [],
         "details": [
-          "Casting on a unit that is not a hero, ancient creep , or creep-hero , instantly kills it. Instantly kills regular illusions regardless of any status effects, except when affected by Shallow Grave . The damage dealt can be defined as EXPR 100% × Current HP Does not heal when instant killing illusions .",
+          "Casting on a unit that is not a hero, ancient creep , or creep-hero , instantly kills it. Instantly kills regular illusions regardless of any status effects, except when affected by Shallow Grave . The damage dealt can be defined as EXPR 100% × Current HP",
           "Instantly kills regular illusions regardless of any status effects, except when affected by Shallow Grave .",
-          "The damage dealt can be defined as EXPR 100% × Current HP",
-          "Does not heal when instant killing illusions .",
-          "The healing value is based on the damage dealt, amplifying or reducing the damage affects the healing value. The healing value can still be subjected to heal manipulation .",
-          "The healing value can still be subjected to heal manipulation ."
+          "The damage dealt can be defined as EXPR 100% × Current HP"
         ],
         "status_effects": {},
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Point Booster",
+        "cost": 1200
+      },
+      {
+        "name": "Crown",
+        "cost": 450
+      },
+      {
+        "name": "Wizard Hat",
+        "cost": 250
+      },
+      {
+        "name": "Recipe",
+        "cost": 1150
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/d/de/Dagon_itemicon_dota2_gameasset.png"
   },
   {
@@ -3810,22 +4188,39 @@
           "Applies a basic dispel and Cyclone effect on the target upon cast, turning it invulnerable and fully disabled . The Cyclone duration is not affected by status resistance .",
           "The Cyclone duration is not affected by status resistance .",
           "Cyclone first applies the dispel, then the cyclone modifier.",
-          "Can only target enemies, self or own clones from Divided We Stand and Tempest Double . Clones from Tempest Double and Nothl Projection can also use this ability on their original hero. Cannot target other allies, wards or buildings .",
-          "Clones from Tempest Double and Nothl Projection can also use this ability on their original hero.",
-          "Cannot target other allies, wards or buildings .",
+          "Can only target enemies, self or own clones. Clones can also use this ability on their original hero. Cannot target other allies, wards , buildings , invulnerable or hidden units.",
+          "Clones can also use this ability on their original hero.",
+          "Cannot target other allies, wards , buildings , invulnerable or hidden units.",
           "While cycloned, the affected unit is moved upwards and has no collision . However, a 24-radius pathing blocker is created at the base of the affected unit while active.",
           "However, a 24-radius pathing blocker is created at the base of the affected unit while active.",
           "The magical spell damage is applied at the end of the duration. If the cyclone gets dispelled, it still applies the damage as soon as the target lands. The damage is only applied to enemy targets.",
           "The damage is only applied to enemy targets."
         ],
         "status_effects": {
-          "modifier_eul_cyclone_thinker": "On hidden entity",
+          "modifier_eul_cyclone_thinker": "On Hidden Entity",
           "modifier_eul_cyclone": "Cyclone: Swept up in a cyclone, you are invulnerable and unable to act."
         },
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Staff of Wizardry",
+        "cost": 1000
+      },
+      {
+        "name": "Void Stone",
+        "cost": 700
+      },
+      {
+        "name": "Wind Lace",
+        "cost": 225
+      },
+      {
+        "name": "Recipe",
+        "cost": 675
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/2/2d/Eul%27s_Scepter_of_Divinity_itemicon_dota2_gameasset.png"
   },
   {
@@ -3869,14 +4264,27 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Staff of Wizardry",
+        "cost": 1000
+      },
+      {
+        "name": "Fluffy Hat",
+        "cost": 250
+      },
+      {
+        "name": "Recipe",
+        "cost": 950
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/b/b3/Force_Staff_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Gleipnir",
     "group": "Magical",
     "description": "Gleipnir is an item purchasable at the Base Shop, under Magical .",
-    "cost": 4550,
+    "cost": 4650,
     "stats": {
       "Intelligence": 12.0,
       "Health": 450.0,
@@ -3886,6 +4294,7 @@
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
       "If a Rod of Atos was purchased as well, Gleipnir's icon takes priority.",
+      "Area of Effect bonuses from multiple Chasm Stones or its upgrades do not stack",
       "The item's attributes grant the following additional stats:",
       "144 mana , 0.6 mana regeneration and 1.2% flat base magic resistance .",
       "12 main attack damage to heroes.",
@@ -3912,16 +4321,20 @@
     ],
     "components": [
       {
-        "name": "Point Booster",
-        "cost": 1200
-      },
-      {
         "name": "Rod of Atos",
         "cost": 2250
       },
       {
+        "name": "Point Booster",
+        "cost": 1200
+      },
+      {
+        "name": "Chasm Stone",
+        "cost": 800
+      },
+      {
         "name": "Recipe",
-        "cost": 1100
+        "cost": 400
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/0/06/Gleipnir_itemicon_dota2_gameasset.png"
@@ -3968,7 +4381,7 @@
           "modifier_invisible": "Invisible"
         },
         "misc": [
-          "Does not share cooldowns with Glimmer Cape ."
+          "Does not share cooldowns with Shadow Amulet ."
         ]
       }
     ],
@@ -3978,12 +4391,12 @@
         "cost": 900
       },
       {
-        "name": "Cloak",
-        "cost": 800
+        "name": "Shawl",
+        "cost": 450
       },
       {
         "name": "Recipe",
-        "cost": 450
+        "cost": 800
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/f/f9/Glimmer_Cape_itemicon_dota2_gameasset.png"
@@ -4024,11 +4437,10 @@
           "The meteor takes 0.5 seconds to land.",
           "Upon landing, all enemies within the area, including buildings but excluding wards , get damaged, stunned, and receive a damaging debuff.",
           "The meteor first applies the debuffs, then the impact damage.",
-          "Deals damage in 1-second intervals, starting 1 second after the debuff is placed, resulting in 7 total instances, including the impact damage. Can deal a total of 430 ( 780) damage ( before reductions ).",
-          "Can deal a total of 430 ( 780) damage ( before reductions ).",
+          "Deals damage in 1-second intervals, starting 1 second after the debuff is placed, resulting in 7 total instances, including the impact damage. Can deal a total of 430 ( 390) damage ( before reductions ).",
+          "Can deal a total of 430 ( 390) damage ( before reductions ).",
           "Multiple casts on the same targets do not stack but refresh the duration instead. Stacks with the debuff of Fallen Sky .",
           "Stacks with the debuff of Fallen Sky .",
-          "Destroys trees within the radius upon impact.",
           "Does not share a cooldown with Fallen Sky ."
         ],
         "status_effects": {
@@ -4107,19 +4519,18 @@
     "description": "Orchid Malevolence is an item purchasable at the Base Shop, under Magical . However, it can only be completed with items from the Secret Shop .",
     "cost": 3275,
     "stats": {
-      "Intelligence": 10.0,
-      "Health Regeneration": 6.0,
-      "Mana Regeneration": 3.0,
-      "Attack Damage": 10.0,
+      "Intelligence": 12.0,
+      "Mana Regeneration": 2.5,
+      "Attack Damage": 20.0,
       "Attack Speed": 35.0
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
       "If a Bloodthorn was purchased as well, Bloodthorn's icon takes priority.",
       "The item's attributes grant the following additional stats:",
-      "120 mana , 0.5 mana regeneration and 1% flat base magic resistance .",
-      "10 main attack damage to heroes.",
-      "4.5 main attack damage to universal heroes."
+      "144 mana , 0.6 mana regeneration and 1.2% flat base magic resistance .",
+      "12 main attack damage to heroes.",
+      "5.4 main attack damage to universal heroes."
     ],
     "abilities": [
       {
@@ -4143,7 +4554,20 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Oblivion Staff",
+        "cost": 1625
+      },
+      {
+        "name": "Claymore",
+        "cost": 1350
+      },
+      {
+        "name": "Recipe",
+        "cost": 300
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/4/43/Orchid_Malevolence_itemicon_dota2_gameasset.png"
   },
   {
@@ -4152,16 +4576,16 @@
     "description": "Refresher Orb is an item purchasable at the Base Shop, under Magical . However, it can only be completed with items from the Secret Shop .",
     "cost": 5000,
     "stats": {
-      "Health Regeneration": 12.0,
-      "Mana Regeneration": 6.0
+      "Health Regeneration": 14.0,
+      "Mana Regeneration": 7.0
     },
     "additional_info": [],
     "abilities": [
       {
         "name": "Reset Cooldowns",
-        "description": "Resets the cooldowns of all abilities of the wielder, as well as all item cooldowns within their inventory or backpack.",
+        "description": "Resets the cooldowns of all abilities of the wielder.",
         "cooldown": 180,
-        "mana_cost": 400,
+        "mana_cost": 325,
         "duration": null,
         "effects": [],
         "details": [
@@ -4231,7 +4655,20 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Staff of Wizardry",
+        "cost": 1000
+      },
+      {
+        "name": "Vitality Booster",
+        "cost": 1000
+      },
+      {
+        "name": "Recipe",
+        "cost": 250
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/e/e6/Rod_of_Atos_itemicon_dota2_gameasset.png"
   },
   {
@@ -4258,14 +4695,15 @@
         "duration": "2",
         "effects": [],
         "details": [
-          "Applies a hex upon cast that applies the following effects on the affected enemy unit: Sets its base movement speed to 140. All movement speed sources now calculates using the set base value. Considers strong illusions as heroes. Silence Mute Disarm Changes the selection box correspondingly to the Hex model. Neither affects the unit's collision size nor bound radius .",
+          "Hex applies the following effects on the affected enemy unit: Sets its base movement speed to 140. All movement speed sources now calculates using the set base value. Considers strong illusions as heroes. Silence Mute Disarm Changes the selection box depending on the Hex model. Neither affects the unit's collision size nor bound radius .",
           "Sets its base movement speed to 140. All movement speed sources now calculates using the set base value.",
+          "Sets its base movement speed to 140.",
           "All movement speed sources now calculates using the set base value.",
           "Considers strong illusions as heroes.",
           "Silence",
           "Disarm",
-          "Changes the selection box correspondingly to the Hex model. Neither affects the unit's collision size nor bound radius .",
-          "Changes the selection box correspondingly to the Hex model.",
+          "Changes the selection box depending on the Hex model. Neither affects the unit's collision size nor bound radius .",
+          "Changes the selection box depending on the Hex model.",
           "Neither affects the unit's collision size nor bound radius ."
         ],
         "status_effects": {
@@ -4320,13 +4758,15 @@
         "effects": [],
         "details": [
           "↓↓ Double-tapping automatically target self.",
-          "Applies a basic dispel and Cyclone effect on the target upon cast, turning it invulnerable and fully disabled . The Cyclone duration is not affected by status resistance . If cast on self, silences , mutes , and disarms the caster, instead of fully disabling them.",
+          "Applies a basic dispel and Cyclone effect on the target upon cast, turning it invulnerable and fully disabled . The Cyclone duration is not affected by status resistance . If cast on self, silences , mutes and disarms the target, instead of fully disabling them. This also applies when targeting own clones or when clones use this ability on their original hero.",
           "The Cyclone duration is not affected by status resistance .",
-          "If cast on self, silences , mutes , and disarms the caster, instead of fully disabling them.",
+          "If cast on self, silences , mutes and disarms the target, instead of fully disabling them. This also applies when targeting own clones or when clones use this ability on their original hero.",
+          "This also applies when targeting own clones or when clones use this ability on their original hero.",
           "Cyclone first applies the dispel, then the cyclone modifier.",
+          "Cannot target wards , buildings , invulnerable or hidden units.",
           "While cycloned, the affected unit is moved upwards and has no collision . However, a 24-radius pathing blocker is created at the base of the affected unit while active.",
           "However, a 24-radius pathing blocker is created at the base of the affected unit while active.",
-          "The damage is applied at the end of the duration. If the cyclone gets dispelled, it still applies the damage as soon as the target lands. The damage is only applied to enemy targets.",
+          "The magical spell damage is applied at the end of the duration. If the cyclone gets dispelled, it still applies the damage as soon as the target lands. The damage is only applied to enemy targets.",
           "The damage is only applied to enemy targets."
         ],
         "status_effects": {
@@ -4557,10 +4997,8 @@
         "description": "Grants bonus magic resistance, debuff immunity, and applies a basic dispel upon cast.The wielder has pure damage immunity, including from damage reflect sources for the entire duration.",
         "cooldown": 95,
         "mana_cost": 50,
-        "duration": "9/8/7/6",
-        "effects": [
-          "+60% Magic Resistance"
-        ],
+        "duration": "9/8/7",
+        "effects": [],
         "details": [
           "The ability has the following properties: Interrupts the wielder's channeling abilities upon cast. Stacks multiplicatively with other magic resistance sources.",
           "Interrupts the wielder's channeling abilities upon cast.",
@@ -4569,7 +5007,8 @@
           "Applies a basic dispel on the wielder.",
           "Debuff immunity and pure damage immunity for the entire duration.",
           "A 30% model size increase. Does not affect collision size .",
-          "A countdown on the item's icon indicates the remaining duration, visible to everyone."
+          "A countdown on the item's icon indicates the remaining duration, visible to everyone.",
+          "Unaffected by buff duration amplification."
         ],
         "status_effects": {
           "modifier_black_king_bar_immune": "Black King Bar: Spell Immune."
@@ -4601,9 +5040,9 @@
     "item": "Blade Mail",
     "group": "Armor",
     "description": "Blade Mail is an item purchasable at the Base Shop, under Armor .",
-    "cost": 2300,
+    "cost": 2400,
     "stats": {
-      "Armor": 6.0,
+      "Armor": 7.0,
       "Attack Damage": 15.0
     },
     "additional_info": [
@@ -4662,15 +5101,118 @@
         "cost": 1000
       },
       {
-        "name": "Chainmail",
-        "cost": 550
+        "name": "Splintmail",
+        "cost": 950
       },
       {
         "name": "Recipe",
-        "cost": 750
+        "cost": 450
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/d/d3/Blade_Mail_itemicon_dota2_gameasset.png"
+  },
+  {
+    "item": "Buckler",
+    "group": "Armor",
+    "description": "Buckler is an item purchasable at the Base Shop, under Support .",
+    "cost": 425,
+    "stats": {
+      "Armor": 1.0
+    },
+    "additional_info": [
+      "With Buckler Aura , the item grants a total of 3 armor to the wielder."
+    ],
+    "abilities": [
+      {
+        "name": "Buckler Aura",
+        "description": "Increases the armor of nearby player-controlled allies.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": "0",
+        "effects": [],
+        "details": [
+          "Multiple instances of Buckler Aura do not stack. Fully stacks with other sources of Buckler-based items' armor aura .",
+          "Fully stacks with other sources of Buckler-based items' armor aura .",
+          "Does not affect invulnerable units."
+        ],
+        "status_effects": {
+          "modifier_item_buckler_effect": "Buckler Armor Bonus: Armor increased by x."
+        },
+        "misc": []
+      }
+    ],
+    "components": [
+      {
+        "name": "Ring of Protection",
+        "cost": 175
+      },
+      {
+        "name": "Recipe",
+        "cost": 250
+      }
+    ],
+    "image_url": "https://liquipedia.net/commons/images/f/f1/Buckler_itemicon_dota2_gameasset.png"
+  },
+  {
+    "item": "Consecrated Wraps",
+    "group": "Armor",
+    "description": "Consecrated Wraps is an item purchasable at the Base Shop, under Support .",
+    "cost": 2600,
+    "stats": {
+      "Strength": 5.0,
+      "Agility": 5.0,
+      "Intelligence": 5.0,
+      "Health": 250.0
+    },
+    "additional_info": [
+      "The item's attributes grant the following additional stats:",
+      "110 health and 0.5 health regeneration .",
+      "60 mana , 0.25 mana regeneration and 0.5% flat base magic resistance .",
+      "5 attack speed and 0.83 main armor .",
+      "5 main attack damage to all / / heroes.",
+      "6.75 main attack damage to universal heroes."
+    ],
+    "abilities": [
+      {
+        "name": "Hallowed",
+        "description": "Gain a charge every 4s, up to a maximum of 3 charges. Upon gaining a charge, your movement speed is increased by 15% for 5s.Whenever you take damage from a player controlled unit or Roshan, consume all charges to gain an all damage barrier for 5s that absorbs 120 damage per charge (360 max).",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": "5",
+        "effects": [],
+        "details": [
+          "Starts with all 3 charges when purchased or built. Initial charges don't provide the movement speed buff .",
+          "Initial charges don't provide the movement speed buff .",
+          "Charges cannot be gained for 3s after you take damage from a player-controlled unit or Roshan.",
+          "Self-damage and HP Loss damage cannot remove charges.",
+          "Movement speed buff does not stack.",
+          "Charge Restore Time is not affected by effects that reduce or modify cooldown s."
+        ],
+        "status_effects": {
+          "modifier_item_consecreated_wraps_effect": "Hallowed: Afer taking damage, remove all charges to gain an all damage barrier."
+        },
+        "misc": []
+      }
+    ],
+    "components": [
+      {
+        "name": "Vitality Booster",
+        "cost": 1000
+      },
+      {
+        "name": "Shawl",
+        "cost": 450
+      },
+      {
+        "name": "Crown",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 700
+      }
+    ],
+    "image_url": "https://liquipedia.net/commons/images/a/aa/Consecrated_Wraps_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Crimson Guard",
@@ -4680,7 +5222,7 @@
     "stats": {
       "Health": 250.0,
       "Health Regeneration": 12.0,
-      "Armor": 8.0
+      "Armor": 6.0
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
@@ -4743,75 +5285,6 @@
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/e/e6/Crimson_Guard_itemicon_dota2_gameasset.png"
-  },
-  {
-    "item": "Eternal Shroud",
-    "group": "Armor",
-    "description": "Eternal Shroud is an item purchasable at the Base Shop, under Armor . However, it can only be completed with items from the Secret Shop .",
-    "cost": 3700,
-    "stats": {
-      "Strength": 10.0,
-      "Health": 250.0
-    },
-    "additional_info": [
-      "The item's attributes grant the following additional stats:",
-      "220 health and 1 health regeneration .",
-      "10 main attack damage to heroes.",
-      "4.5 main attack damage to universal heroes.",
-      "Bonuses from multiple Eternal Shrouds, including Shroud , do not stack.",
-      "Stacks multiplicatively with other magic resistance sources.",
-      "Increases most heroes' magic resistance to 40%.",
-      "With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.8%. [ ? ]"
-    ],
-    "abilities": [
-      {
-        "name": "Shroud",
-        "description": "Restores mana based on the incoming enemy spell damage value before reductions.",
-        "cooldown": null,
-        "mana_cost": null,
-        "duration": null,
-        "effects": [],
-        "details": [
-          "Considers spell damage of all damage types ( before reductions ), excluding HP Removal sources."
-        ],
-        "status_effects": {},
-        "misc": []
-      },
-      {
-        "name": "Eternal Endurance",
-        "description": "Grants base magic resistance bonus stacks per certain amount of incoming magical damage received.",
-        "cooldown": null,
-        "mana_cost": null,
-        "duration": "5",
-        "effects": [],
-        "details": [
-          "Each stack places a new buff on the wielder, with each buff duration independent of the other."
-        ],
-        "status_effects": {
-          "modifier_item_eternal_endurance": ""
-        },
-        "misc": []
-      }
-    ],
-    "components": [
-      {
-        "name": "Cloak",
-        "cost": 800
-      },
-      {
-        "name": "Ogre Axe",
-        "cost": 1000
-      },
-      {
-        "name": "Vitality Booster",
-        "cost": 1000
-      },
-      {
-        "name": "Recipe",
-        "cost": 900
-      }
-    ],
-    "image_url": "https://liquipedia.net/commons/images/9/91/Eternal_Shroud_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Eye of Skadi",
@@ -4983,7 +5456,20 @@
         ]
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Helm of Iron Will",
+        "cost": 975
+      },
+      {
+        "name": "Crown",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 1125
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/4/4a/Helm_of_the_Dominator_itemicon_dota2_gameasset.png"
   },
   {
@@ -5010,7 +5496,7 @@
       {
         "name": "Dominate",
         "description": "Takes control of an enemy non-hero unit, elevating its status to a Creep-Hero, and granting it various stat bonuses. Can dominate ancient creeps.",
-        "cooldown": 45,
+        "cooldown": 40,
         "mana_cost": 50,
         "duration": null,
         "effects": [],
@@ -5022,10 +5508,10 @@
           "Dominating a creep while already having one dominated instantly kills the previously dominated creep.",
           "Grants the caster the dominated creep's default 100% and 100% bounty upon cast.",
           "Applies a basic dispel on the creep upon cast.",
-          "Manipulates the creep's stats in the following ways: Sets the unit's type to Creep-Hero . Sets base movement speed to 380, regardless of its default movement speed. If max health is below the min health threshold, sets current and max health to 1800. Sets gold bounty to 250 , overwriting its default bounty. Increases base attack damage , it is not granted as an attack damage bonus. Increases health regen and mana regen . Grants an armor bonus, it is not added to the base armor. If cast on a neutral creep, increases its abilities' by 1 and unlocks their 4th level. For a full list of neutral creep abilities, refer to the chart below. Does not restore the creep's mana .",
+          "Manipulates the creep's stats in the following ways: Sets the unit's type to Creep-Hero . Sets base movement speed to 380, regardless of its default movement speed. If max health is below the min health threshold, sets current and max health to 1900. Sets gold bounty to 250 , overwriting its default bounty. Increases base attack damage , it is not granted as an attack damage bonus. Increases health regen and mana regen . Grants an armor bonus, it is not added to the base armor. If cast on a neutral creep, increases its abilities' by 1 and unlocks their 4th level. For a full list of neutral creep abilities, refer to the chart below. Does not restore the creep's mana .",
           "Sets the unit's type to Creep-Hero .",
           "Sets base movement speed to 380, regardless of its default movement speed.",
-          "If max health is below the min health threshold, sets current and max health to 1800.",
+          "If max health is below the min health threshold, sets current and max health to 1900.",
           "Sets gold bounty to 250 , overwriting its default bounty.",
           "Increases base attack damage , it is not granted as an attack damage bonus.",
           "Increases health regen and mana regen .",
@@ -5198,22 +5684,14 @@
     "item": "Shiva's Guard",
     "group": "Armor",
     "description": "Shiva's Guard is an item purchasable at the Base Shop, under Armor . However, it can only be completed with items from the Secret Shop .",
-    "cost": 5175,
+    "cost": 4500,
     "stats": {
-      "Strength": 5.0,
-      "Agility": 5.0,
-      "Intelligence": 5.0,
-      "Health Regeneration": 5.0,
-      "Armor": 15.0
+      "Armor": 17.0,
+      "AoE Radius": 75.0
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
-      "The item's attributes grant the following additional stats:",
-      "110 health and 0.5 health regeneration .",
-      "60 mana , 0.25 mana regeneration and 0.5% flat base magic resistance .",
-      "5 attack speed and 0.83 main armor .",
-      "5 main attack damage to all / / heroes.",
-      "6.75 main attack damage to universal heroes."
+      "Area of Effect bonuses from multiple Chasm Stones or its upgrades do not stack"
     ],
     "abilities": [
       {
@@ -5225,40 +5703,33 @@
         "effects": [],
         "details": [
           "Does not interrupt the caster's channeling abilities upon cast. Exception: Tricks of the Trade .",
-          "modifier_item_shivas_guard_thinker Arctic Blast is centered on the caster for the full duration. The blast spreads at a speed of 400, taking 2.25 seconds to cover the whole radius. Affects the entire area while expanding, the area of effect is not a ring.",
+          "modifier_item_shivas_guard_thinker Arctic Blast is centered on the caster for the full duration. The blast spreads at a speed of 400, taking 2.06 seconds to cover the whole radius. Affects the entire area while expanding, the area of effect is not a ring.",
           "Arctic Blast is centered on the caster for the full duration.",
-          "The blast spreads at a speed of 400, taking 2.25 seconds to cover the whole radius.",
+          "The blast spreads at a speed of 400, taking 2.06 seconds to cover the whole radius.",
           "Affects the entire area while expanding, the area of effect is not a ring.",
-          "modifier_item_veil_of_discord_debuff Applies generic incoming damage amplification on affected enemy units. Only affects spell damage of all damage types, does not affect attack damage. Does not affect damage flagged as HP Removal . Stacks additively with other sources of generic incoming damage manipulation.",
-          "Applies generic incoming damage amplification on affected enemy units.",
-          "Only affects spell damage of all damage types, does not affect attack damage.",
-          "Does not affect damage flagged as HP Removal .",
-          "Stacks additively with other sources of generic incoming damage manipulation.",
           "Does not affects invulnerable units."
         ],
         "status_effects": {
           "modifier_item_shivas_guard_thinker": "On hidden entity",
-          "modifier_item_shivas_guard_blast": "Arctic Blast: Movement speed slowed by x%.",
-          "modifier_item_veil_of_discord_debuff": "Magic Weakness: Magic damage increased by x%."
+          "modifier_item_shivas_guard_blast": "Arctic Blast: Movement speed slowed by x%."
         },
         "misc": [
           "Provides 800 radius flying vision , following the caster and leaving a trail of vision which lasts for 2 seconds.",
-          "Applies the effects in the following order: The Magic Weakness debuff The slow debuff The spell damage.",
-          "The Magic Weakness debuff",
+          "Applies the effects in the following order: The slow debuff The spell damage.",
           "The slow debuff",
           "The spell damage."
         ]
       },
       {
         "name": "Freezing Aura",
-        "description": "Reduces the attack speed, as well as the effectiveness of healing and health restoration of nearby enemies.",
+        "description": "Reduces the attack speed of nearby enemies.",
         "cooldown": null,
         "mana_cost": null,
-        "duration": null,
+        "duration": "0",
         "effects": [],
         "details": [
           "Multiple instances of Freezing Aura do not stack.",
-          "Does not affects invulnerable or hidden enemies."
+          "Does not affect invulnerable or hidden enemies."
         ],
         "status_effects": {
           "modifier_item_shivas_guard_aura": "Freezing Aura: Attack speed reduced by x and regeneration by x%."
@@ -5271,16 +5742,20 @@
     ],
     "components": [
       {
-        "name": "Veil of Discord",
-        "cost": 1725
-      },
-      {
         "name": "Platemail",
         "cost": 1400
       },
       {
+        "name": "Splintmail",
+        "cost": 950
+      },
+      {
+        "name": "Chasm Stone",
+        "cost": 800
+      },
+      {
         "name": "Recipe",
-        "cost": 2050
+        "cost": 1350
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/b/b8/Shiva%27s_Guard_itemicon_dota2_gameasset.png"
@@ -5313,32 +5788,36 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Vitality Booster",
+        "cost": 1000
+      },
+      {
+        "name": "Ring of Health",
+        "cost": 700
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/8/89/Vanguard_itemicon_dota2_gameasset.png"
   },
   {
     "item": "Veil of Discord",
     "group": "Armor",
     "description": "Veil of Discord is an item purchasable at the Base Shop, under Armor .",
-    "cost": 1725,
+    "cost": 1700,
     "stats": {
-      "Strength": 4.0,
-      "Agility": 4.0,
-      "Intelligence": 4.0,
-      "Health Regeneration": 4.5,
-      "Armor": 4.0
+      "Intelligence": 10.0,
+      "Health": 175.0
     },
     "additional_info": [
       "The item's attributes grant the following additional stats:",
-      "88 health and 0.4 health regeneration .",
-      "48 mana , 0.2 mana regeneration and 0.4% flat base magic resistance .",
-      "4 attack speed and 0.67 main armor .",
-      "4 main attack damage to all / / heroes.",
-      "5.4 main attack damage to universal heroes."
+      "120 mana , 0.5 mana regeneration and 1% flat base magic resistance .",
+      "10 main attack damage to heroes.",
+      "4.5 main attack damage to universal heroes."
     ],
     "abilities": [
       {
-        "name": "Magic Weakness",
+        "name": "Spell Weakness",
         "description": "Weakens nearby enemies by applying a debuff that amplifies any spell damage they take.",
         "cooldown": 16,
         "mana_cost": 50,
@@ -5353,12 +5832,29 @@
           "Affects invulnerable units as well."
         ],
         "status_effects": {
-          "modifier_item_veil_of_discord_debuff": "Magic Weakness: Magic damage increased by x%."
+          "modifier_item_veil_of_discord_debuff": "Spell Weakness: Spell damage increased by x%."
         },
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Voodoo Mask",
+        "cost": 650
+      },
+      {
+        "name": "Robe of the Magi",
+        "cost": 450
+      },
+      {
+        "name": "Fluffy Hat",
+        "cost": 250
+      },
+      {
+        "name": "Recipe",
+        "cost": 350
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/b/b6/Veil_of_Discord_itemicon_dota2_gameasset.png"
   },
   {
@@ -5405,13 +5901,18 @@
         "duration": "1",
         "effects": [],
         "details": [
-          "The bonus damage is considered as a conditional attack damage bonus. Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the wielder's attack damage. The attack damage bonus values are not considered by critical strike and cleave. However, it is considered by lifesteal , and it can be reduced only by flat reductions (e.g. damage block ). Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions.",
-          "Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the wielder's attack damage.",
-          "The attack damage bonus values are not considered by critical strike and cleave.",
-          "However, it is considered by lifesteal , and it can be reduced only by flat reductions (e.g. damage block ).",
-          "Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions.",
-          "Does not work against wards and buildings , but works against allied units.",
-          "Bash uses pseudo-random distribution .",
+          "Bash is a conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
+          "The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD .",
+          "interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources.",
+          "Lifesteal .",
+          "Damage Block sources.",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
+          "Percentage-based bonus attack damage .",
+          "Critical strike .",
+          "Cleave .",
+          "Does not work against wards or buildings , but works against allied units.",
+          "The proc chance is determined during the unit's attack point , and uses pseudo-random distribution ( +8.47% and P( 12 ) = 100% ).",
           "Bash uses a custom cooldown system. It is neither displayed on the item icon when procced, nor is affected by cooldown manipulation."
         ],
         "status_effects": {
@@ -5519,16 +6020,16 @@
     ],
     "components": [
       {
-        "name": "Broadsword",
-        "cost": 1000
+        "name": "Perseverance",
+        "cost": 1400
       },
       {
         "name": "Broadsword",
         "cost": 1000
       },
       {
-        "name": "Cornucopia",
-        "cost": 1200
+        "name": "Broadsword",
+        "cost": 1000
       },
       {
         "name": "Quelling Blade",
@@ -5536,7 +6037,7 @@
       },
       {
         "name": "Recipe",
-        "cost": 600
+        "cost": 400
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/6/63/Battle_Fury_itemicon_dota2_gameasset.png"
@@ -5545,28 +6046,27 @@
     "item": "Bloodthorn",
     "group": "Weapons",
     "description": "Bloodthorn is an item purchasable at the Base Shop, under Weapons . However, it requires an item from the Secret Shop to be completed.",
-    "cost": 6625,
+    "cost": 6400,
     "stats": {
-      "Intelligence": 10.0,
-      "Health Regeneration": 6.5,
-      "Mana Regeneration": 3.25,
-      "Attack Damage": 10.0,
-      "Attack Speed": 95.0
+      "Intelligence": 25.0,
+      "Mana Regeneration": 4.0,
+      "Attack Damage": 20.0,
+      "Attack Speed": 70.0
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
       "If an Orchid Malevolence was purchased as well, Bloodthorn's icon takes priority.",
       "The item's attributes grant the following additional stats:",
-      "120 mana , 0.5 mana regeneration and 1% flat base magic resistance .",
-      "10 main attack damage to heroes.",
-      "4.5 main attack damage to universal heroes."
+      "300 mana , 1.25 mana regeneration and 2.5% flat base magic resistance .",
+      "25 main attack damage to heroes.",
+      "11.25 main attack damage to universal heroes."
     ],
     "abilities": [
       {
         "name": "Soul Rend",
         "description": "Silences a target enemy for a while. At the end of the duration, a portion of all damage they took during the silence is dealt to them again, as magical damage.",
         "cooldown": 15,
-        "mana_cost": 125,
+        "mana_cost": 150,
         "duration": "5",
         "effects": [],
         "details": [
@@ -5595,16 +6095,23 @@
         "duration": null,
         "effects": [],
         "details": [
-          "The bonus damage is considered as a conditional attack damage bonus and is magical damage. Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the unit's attack damage. While is not considered by lifesteal, crit or cleave, it is considered by spell lifesteal. It can be reduced only by flat reductions (e.g. magical damage barrier ). Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions.",
-          "Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the unit's attack damage.",
-          "While is not considered by lifesteal, crit or cleave, it is considered by spell lifesteal.",
-          "It can be reduced only by flat reductions (e.g. magical damage barrier ).",
-          "Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions."
+          "The proc chance is determined during the unit's attack point , and uses pseudo-random distribution ( +20.15% and P( 5 ) = 100% ).",
+          "Pierce is a magical conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD .",
+          "interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources.",
+          "Spell Lifesteal .",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "Percentage-based bonus attack damage .",
+          "Critical strike .",
+          "Cleave .",
+          "Lifesteal .",
+          "Damage block sources."
         ],
         "status_effects": {},
         "misc": [
           "Does not work against buildings , but works against wards and allied units.",
-          "Adds an average of 24 magical damage to every attack.",
+          "Adds an average of 24 magical attack damage to every attack.",
           "Pierce uses pseudo-random distribution ."
         ]
       }
@@ -5615,16 +6122,16 @@
         "cost": 3275
       },
       {
+        "name": "Oblivion Staff",
+        "cost": 1625
+      },
+      {
         "name": "Javelin",
         "cost": 900
       },
       {
-        "name": "Hyperstone",
-        "cost": 2000
-      },
-      {
         "name": "Recipe",
-        "cost": 450
+        "cost": 600
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/4/4e/Bloodthorn_itemicon_dota2_gameasset.png"
@@ -5643,7 +6150,7 @@
       "35 attack speed and 5.83 main armor .",
       "35 main attack damage to heroes.",
       "15.75 main attack damage to universal heroes.",
-      "Evasion uses pseudo-random distribution .",
+      "The evasion proc is determined the attack projectile impact, and uses pseudo-random distribution ( +15.8% and P( 7 ) = 100% ).",
       "Stacks diminishingly with other evasion sources.",
       "Increases most heroes survivability against physical attacks by 53.85%."
     ],
@@ -5682,18 +6189,31 @@
         "duration": null,
         "effects": [],
         "details": [
-          "Critical strike procs have the following properties: The proc is determined during the unit's attack point . The proc chance of multiple sources stack. However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence. Critical Strike uses pseudo-random distribution .",
-          "The proc is determined during the unit's attack point .",
+          "The critical strike proc is determined during the unit's attack point and uses pseudo-random distribution ( +11.89% and P( 9 ) = 100% ). The proc chance of multiple sources stack. However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence.",
+          "The critical strike proc is determined during the unit's attack point and uses pseudo-random distribution ( +11.89% and P( 9 ) = 100% ).",
           "The proc chance of multiple sources stack. However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence.",
-          "However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence.",
-          "Critical Strike uses pseudo-random distribution .",
-          "Increases attack damage by an average of 18%."
+          "However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence."
         ],
         "status_effects": {},
-        "misc": []
+        "misc": [
+          "Increases attack damage by an average of 18%."
+        ]
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Claymore",
+        "cost": 1350
+      },
+      {
+        "name": "Blades of Attack",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 200
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/6/6c/Crystalys_itemicon_dota2_gameasset.png"
   },
   {
@@ -5846,8 +6366,7 @@
         "effects": [],
         "details": [
           "The slow decays evenly over the duration in 0.8-second intervals. This results in a slow of 100%/80%/60%/40%/20% at second 4/3.2/2.4/1.6/0.8/0.",
-          "This results in a slow of 100%/80%/60%/40%/20% at second 4/3.2/2.4/1.6/0.8/0.",
-          "Can be cast on and fully affect invulnerable units."
+          "This results in a slow of 100%/80%/60%/40%/20% at second 4/3.2/2.4/1.6/0.8/0."
         ],
         "status_effects": {
           "modifier_item_diffusal_blade_slow": "Diffusal Blade Inhibit: Movement speed reduced by x%."
@@ -5862,21 +6381,36 @@
         "duration": null,
         "effects": [],
         "details": [
-          "Mana Break a conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . The bonus depends on how much mana the target actually lost from the attack. Does not interact with the following mechanics: Percentage-based bonus attack damage . Lifesteal . Critical strike . Cleave . Damage block sources.",
+          "Mana Break is a conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . The bonus depends on how much mana the target actually lost from the attack. interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
           "The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD .",
           "The bonus depends on how much mana the target actually lost from the attack.",
-          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Lifesteal . Critical strike . Cleave . Damage block sources.",
-          "Percentage-based bonus attack damage .",
+          "interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources.",
           "Lifesteal .",
+          "Damage Block sources.",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
+          "Percentage-based bonus attack damage .",
           "Critical strike .",
-          "Cleave .",
-          "Damage block sources."
+          "Cleave ."
         ],
         "status_effects": {},
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Blade of Alacrity",
+        "cost": 1000
+      },
+      {
+        "name": "Robe of the Magi",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 1050
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/9/97/Diffusal_Blade_itemicon_dota2_gameasset.png"
   },
   {
@@ -5904,7 +6438,6 @@
         "duration": "5",
         "effects": [],
         "details": [
-          "Can be cast on and fully affect invulnerable units.",
           "modifier_item_diffusal_blade_slow The slow decays evenly over the duration in 1-second intervals. This results in a slow of 100%/80%/60%/40%/20% at second 5/4/3/2/1/0.",
           "The slow decays evenly over the duration in 1-second intervals. This results in a slow of 100%/80%/60%/40%/20% at second 5/4/3/2/1/0.",
           "This results in a slow of 100%/80%/60%/40%/20% at second 5/4/3/2/1/0.",
@@ -5926,15 +6459,17 @@
         "duration": null,
         "effects": [],
         "details": [
-          "Mana Break is a conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . The bonus depends on how much mana the target actually lost from the attack. Does not interact with the following mechanics: Percentage-based bonus attack damage . Lifesteal . Critical strike . Cleave . Damage block sources.",
+          "Mana Break is a conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . The bonus depends on how much mana the target actually lost from the attack. interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
           "The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD .",
           "The bonus depends on how much mana the target actually lost from the attack.",
-          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Lifesteal . Critical strike . Cleave . Damage block sources.",
-          "Percentage-based bonus attack damage .",
+          "interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources.",
           "Lifesteal .",
+          "Damage Block sources.",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
+          "Percentage-based bonus attack damage .",
           "Critical strike .",
-          "Cleave .",
-          "Damage block sources."
+          "Cleave ."
         ],
         "status_effects": {},
         "misc": []
@@ -6019,19 +6554,18 @@
     "item": "Mage Slayer",
     "group": "Weapons",
     "description": "Mage Slayer is an item purchasable at the Base Shop, under Weapons .",
-    "cost": 2800,
+    "cost": 3100,
     "stats": {
-      "Health Regeneration": 5.0,
-      "Mana Regeneration": 2.0,
-      "Attack Damage": 8.0,
-      "Attack Speed": 30.0
+      "Health Regeneration": 5.5,
+      "Mana Regeneration": 2.5,
+      "Attack Damage": 15.0
     },
     "additional_info": [
       "The item's attributes grant the following additional stats:",
       "main attack damage to .",
       "Stacks multiplicatively with other magic resistance sources.",
-      "Increases most heroes' magic resistance to 40%.",
-      "With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.8%. [ ? ]"
+      "Increases most heroes' magic resistance to 38.5%.",
+      "With the magic resistance bonus from this source, every 10 points of intelligence further increases the total magic resistance by 0.82%. [ ? ]"
     ],
     "abilities": [
       {
@@ -6056,20 +6590,20 @@
     ],
     "components": [
       {
+        "name": "Perseverance",
+        "cost": 1400
+      },
+      {
         "name": "Cloak",
-        "cost": 800
+        "cost": 900
+      },
+      {
+        "name": "Blades of Attack",
+        "cost": 450
       },
       {
         "name": "Orb of Venom",
         "cost": 350
-      },
-      {
-        "name": "Gloves of Haste",
-        "cost": 450
-      },
-      {
-        "name": "Cornucopia",
-        "cost": 1200
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/4/47/Mage_Slayer_itemicon_dota2_gameasset.png"
@@ -6078,10 +6612,10 @@
     "item": "Monkey King Bar",
     "group": "Weapons",
     "description": "Monkey King Bar is an item purchasable at the Main Shop, under Weapons . However, it can only be completed with items from the Secret Shop .",
-    "cost": 4700,
+    "cost": 5000,
     "stats": {
-      "Attack Damage": 40.0,
-      "Attack Speed": 45.0
+      "Attack Damage": 50.0,
+      "Attack Speed": 50.0
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally."
@@ -6095,16 +6629,23 @@
         "duration": null,
         "effects": [],
         "details": [
-          "The bonus damage is considered as a conditional attack damage bonus and is magical damage. Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the unit's attack damage. While is not considered by lifesteal, crit or cleave, it is considered by spell lifesteal. It can be reduced only by flat reductions (e.g. magical damage barrier ). Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions.",
-          "Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the unit's attack damage.",
-          "While is not considered by lifesteal, crit or cleave, it is considered by spell lifesteal.",
-          "It can be reduced only by flat reductions (e.g. magical damage barrier ).",
-          "Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions."
+          "The proc chance is determined during the unit's attack point , and uses pseudo-random distribution ( +75% and P( 2 ) = 100% ).",
+          "Pierce is a magical conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD .",
+          "interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources.",
+          "Spell Lifesteal .",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "Percentage-based bonus attack damage .",
+          "Critical strike .",
+          "Cleave .",
+          "Lifesteal .",
+          "Damage block sources."
         ],
         "status_effects": {},
         "misc": [
           "Does not work against buildings , but works against wards and allied units.",
-          "Adds an average of 56 magical damage to every attack.",
+          "Adds an average of 56 magical attack damage to every attack.",
           "Pierce uses pseudo-random distribution ."
         ]
       }
@@ -6124,7 +6665,7 @@
       },
       {
         "name": "Recipe",
-        "cost": 600
+        "cost": 900
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/f/f7/Monkey_King_Bar_itemicon_dota2_gameasset.png"
@@ -6133,9 +6674,8 @@
     "item": "Nullifier",
     "group": "Weapons",
     "description": "Nullifier is an item purchasable at the Base Shop, under Weapons . However, it requires an item from the Secret Shop to be completed.",
-    "cost": 4375,
+    "cost": 4350,
     "stats": {
-      "Health Regeneration": 6.0,
       "Armor": 10.0,
       "Attack Damage": 75.0
     },
@@ -6145,7 +6685,7 @@
     "abilities": [
       {
         "name": "Nullify",
-        "description": "Launches a projectile at the target enemy, that applies a debuff on the which continuously dispels them and slows their movement speed.",
+        "description": "Launches a projectile at the target enemy, that applies a debuff which continuously dispels them and slows their movement speed.",
         "cooldown": 10,
         "mana_cost": 0,
         "duration": "4",
@@ -6153,11 +6693,11 @@
         "details": [
           "Applies a basic dispel upon projectile impact, before applying the modifier.",
           "The modifier a basic dispel in 0.2-second intervals, 0.2 seconds after the debuff is applied, resulting in 20 dispel instances.",
-          "Cannot be cast on Invulnerable units. However, the initial dispel of an already launched projectile pierces invulnerability. The projectile does not apply the debuff if the target is invulnerable on impact. Therefore, if the invulnerability could not be dispelled by the initial dispel, the debuff is not applied. If the target was already debuffed, its duration does gets refreshed.",
+          "Cannot be cast on Invulnerable units. However, the initial dispel of an already launched projectile pierces invulnerability. The projectile does not apply the debuff if the target is invulnerable on impact. Therefore, if the invulnerability could not be dispelled by the initial dispel, the debuff is not applied. If the target was already debuffed, its duration does get refreshed.",
           "However, the initial dispel of an already launched projectile pierces invulnerability.",
-          "The projectile does not apply the debuff if the target is invulnerable on impact. Therefore, if the invulnerability could not be dispelled by the initial dispel, the debuff is not applied. If the target was already debuffed, its duration does gets refreshed.",
+          "The projectile does not apply the debuff if the target is invulnerable on impact. Therefore, if the invulnerability could not be dispelled by the initial dispel, the debuff is not applied. If the target was already debuffed, its duration does get refreshed.",
           "Therefore, if the invulnerability could not be dispelled by the initial dispel, the debuff is not applied.",
-          "If the target was already debuffed, its duration does gets refreshed."
+          "If the target was already debuffed, its duration does get refreshed."
         ],
         "status_effects": {
           "modifier_item_nullifier_mute": "Nullifier: The target is being constantly dispelled. Slowed by x%."
@@ -6171,8 +6711,8 @@
         "cost": 3400
       },
       {
-        "name": "Helm of Iron Will",
-        "cost": 975
+        "name": "Splintmail",
+        "cost": 950
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/9/9e/Nullifier_itemicon_dota2_gameasset.png"
@@ -6283,7 +6823,7 @@
     },
     "additional_info": [
       "This item is shown as a Team Item in the shop window when purchased by an ally.",
-      "Evasion uses pseudo-random distribution .",
+      "The evasion proc is determined the attack projectile impact, and uses pseudo-random distribution ( +8.47% and P( 12 ) = 100% ).",
       "Stacks diminishingly with other evasion sources.",
       "15% Evasion increases most heroes EHP against physical attacks by 33.33%."
     ],
@@ -6299,9 +6839,7 @@
           "Does not interrupt the caster's channeling abilities or break invisibility upon toggling On / Off .",
           "Burn Aura All of the effects are provided by an aura, that is only active while toggled on. Multiple instances of the aura do not stack, if multiple are present, the first applied instance deals damage.",
           "All of the effects are provided by an aura, that is only active while toggled on.",
-          "Multiple instances of the aura do not stack, if multiple are present, the first applied instance deals damage.",
-          "Blind uses pseudo-random distribution . Stacks additively with other blind sources and multiplicatively with evasion sources.",
-          "Stacks additively with other blind sources and multiplicatively with evasion sources."
+          "Multiple instances of the aura do not stack, if multiple are present, the first applied instance deals damage."
         ],
         "status_effects": {},
         "misc": []
@@ -6337,12 +6875,20 @@
         "duration": null,
         "effects": [],
         "details": [
-          "Phantom Critical adds magical attack damage directly to the attack.",
-          "Critical strike procs have the following properties: The proc is determined during the unit's attack point . The proc chance of multiple sources stack. However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence. Critical Strike uses pseudo-random distribution .",
-          "The proc is determined during the unit's attack point .",
+          "Phantom Critical adds magical attack damage directly to the attack. The magical attack damage component interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "The magical attack damage component interacts with the following mechanics: Spell Lifesteal . Damage Barrier sources.",
+          "Spell Lifesteal .",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave . Lifesteal . Damage block sources.",
+          "Percentage-based bonus attack damage .",
+          "Critical strike .",
+          "Cleave .",
+          "Lifesteal .",
+          "Damage block sources.",
+          "The critical strike proc is determined during the unit's attack point and uses pseudo-random distribution ( +11.89% and P( 9 ) = 100% ). The proc chance of multiple sources stack. However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence.",
+          "The critical strike proc is determined during the unit's attack point and uses pseudo-random distribution ( +11.89% and P( 9 ) = 100% ).",
           "The proc chance of multiple sources stack. However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence.",
-          "However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence.",
-          "Critical Strike uses pseudo-random distribution ."
+          "However, when multiple critical strike sources proc simutaneously, the higher critical factor takes precedence."
         ],
         "status_effects": {},
         "misc": [
@@ -6421,7 +6967,20 @@
         ]
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Shadow Amulet",
+        "cost": 900
+      },
+      {
+        "name": "Blitz Knuckles",
+        "cost": 1000
+      },
+      {
+        "name": "Claymore",
+        "cost": 1350
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/4/41/Shadow_Blade_itemicon_dota2_gameasset.png"
   },
   {
@@ -6526,13 +7085,18 @@
         "duration": "1",
         "effects": [],
         "details": [
-          "The bonus damage is considered as a conditional attack damage bonus. Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the wielder's attack damage. The attack damage bonus values are not considered by critical strike and cleave. However, it is considered by lifesteal , and it can be reduced only by flat reductions (e.g. damage block ). Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions.",
-          "Although the attack damage bonus values are not displayed in the HUD, it is still considered and directly added to the wielder's attack damage.",
-          "The attack damage bonus values are not considered by critical strike and cleave.",
-          "However, it is considered by lifesteal , and it can be reduced only by flat reductions (e.g. damage block ).",
-          "Since it is considered bonus attack damage, it is not affected by percentage-based attack damage bonuses or reductions.",
-          "Does not work against wards and buildings , but works against allied units.",
-          "Bash uses pseudo-random distribution ."
+          "Bash is a conditional attack damage bonus and has the following properties: The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD . interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources. Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
+          "The bonus attack damage is directly added to the wielder's attack damage, but is not visible in the HUD .",
+          "interacts with the following mechanics: Lifesteal . Damage Block sources. Damage Barrier sources.",
+          "Lifesteal .",
+          "Damage Block sources.",
+          "Damage Barrier sources.",
+          "Does not interact with the following mechanics: Percentage-based bonus attack damage . Critical strike . Cleave .",
+          "Percentage-based bonus attack damage .",
+          "Critical strike .",
+          "Cleave .",
+          "Does not work against wards or buildings , but works against allied units.",
+          "The proc chance is determined during the unit's attack point , and uses pseudo-random distribution ( +8.47% and P( 12 ) = 100% )."
         ],
         "status_effects": {
           "modifier_bashed": "Bash: Stunned by bash."
@@ -6540,11 +7104,24 @@
         "misc": [
           "ABILITY DRAFT Fully stacks with Time Lock , Bash of the Deep and Greater Bash .",
           "The proccing attack first applies the debuff, then the damage.",
-          "Adds an average of 25 and 10 damage to every attack for melee and ranged heroes respectively."
+          "Adds an average of 25 and 10 physical attack damage to every attack for melee and ranged heroes respectively."
         ]
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Mithril Hammer",
+        "cost": 1600
+      },
+      {
+        "name": "Belt of Strength",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 825
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/6/62/Skull_Basher_itemicon_dota2_gameasset.png"
   },
   {
@@ -6597,7 +7174,24 @@
         ]
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Oblivion Staff",
+        "cost": 1625
+      },
+      {
+        "name": "Chainmail",
+        "cost": 500
+      },
+      {
+        "name": "Orb of Venom",
+        "cost": 350
+      },
+      {
+        "name": "Recipe",
+        "cost": 300
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/0/0e/Witch_Blade_itemicon_dota2_gameasset.png"
   },
   {
@@ -6624,7 +7218,13 @@
         "effects": [],
         "details": [
           "Blink utilizes the teleport mechanic, and has the following properties: When targeting a point within 1400 distance, teleports directly onto the targeted point. When targeting a point beyond 1400 distance, teleports 1400 distance towards the targeted point instead. Incoming projectiles are disjointed upon teleporting.",
-          "Doubletap targets a point in front of the team's Fountain , following the same behavior as above. Locations of the fountains, relative to the center of the map: Radiant Fountain: -7456 / -6938 Dire Fountain: 7408 / 6848"
+          "When targeting a point within 1400 distance, teleports directly onto the targeted point.",
+          "When targeting a point beyond 1400 distance, teleports 1400 distance towards the targeted point instead.",
+          "Incoming projectiles are disjointed upon teleporting.",
+          "Doubletap targets a point in front of the team's Fountain , following the same behavior as above. Locations of the fountains, relative to the center of the map: Radiant Fountain: -7456 / -6938 Dire Fountain: 7408 / 6848",
+          "Locations of the fountains, relative to the center of the map:",
+          "Radiant Fountain: -7456 / -6938",
+          "Dire Fountain: 7408 / 6848"
         ],
         "status_effects": {},
         "misc": []
@@ -6678,7 +7278,20 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Blade of Alacrity",
+        "cost": 1000
+      },
+      {
+        "name": "Belt of Strength",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 450
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/4/47/Dragon_Lance_itemicon_dota2_gameasset.png"
   },
   {
@@ -6717,7 +7330,20 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Ogre Axe",
+        "cost": 1000
+      },
+      {
+        "name": "Broadsword",
+        "cost": 1000
+      },
+      {
+        "name": "Void Stone",
+        "cost": 700
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/1/11/Echo_Sabre_itemicon_dota2_gameasset.png"
   },
   {
@@ -6743,7 +7369,7 @@
     "abilities": [
       {
         "name": "Draw Forth",
-        "description": "Launches a harpoon that latches onto the target, pulling the caster and the target towards each other, meeting in the middle. Has a maximum pull distance.",
+        "description": "Launches a harpoon that latches onto the target, pulling the caster and the target towards each other, meeting in the middle. Targeting a tree always pulls you all the way to the tree. Has a maximum pull distance.",
         "cooldown": 19,
         "mana_cost": 50,
         "duration": "0",
@@ -6808,59 +7434,39 @@
     "item": "Heaven's Halberd",
     "group": "Armaments",
     "description": "Heaven's Halberd is an item purchasable at the Main Shop, under Armaments . However, it requires an item from the Secret Shop to be completed.",
-    "cost": 2600,
+    "cost": 3400,
     "stats": {
-      "Strength": 5.0,
-      "Agility": 5.0,
-      "Intelligence": 5.0,
-      "Health": 275.0,
-      "Health Regeneration": 6.0
+      "Health Regeneration": 6.5,
+      "Armor": 9.0
     },
     "additional_info": [
-      "This item is shown as a Team Item in the shop window when purchased by an ally.",
-      "The item's attributes grant the following additional stats:",
-      "110 health and 0.5 health regeneration .",
-      "60 mana , 0.25 mana regeneration and 0.5% flat base magic resistance .",
-      "5 attack speed and 0.83 main armor .",
-      "5 main attack damage to all / / heroes.",
-      "6.75 main attack damage to universal heroes.",
-      "The proc chances of all sources of damage block work independently from each other.",
-      "When multiple sources of damage block proc on the same attack, only the one with the highest blocked damage value takes effect."
+      "This item is shown as a Team Item in the shop window when purchased by an ally."
     ],
     "abilities": [
       {
         "name": "Disarm",
         "description": "Disarms the targeted enemy unit, preventing them from attacking.",
-        "cooldown": 20,
+        "cooldown": 16,
         "mana_cost": 25,
         "duration": "3",
         "effects": [],
         "details": [],
         "status_effects": {},
         "misc": []
-      },
-      {
-        "name": "Damage Block",
-        "description": "Grants the wielder a chance to block a fixed portion of physical attack damage.",
-        "cooldown": null,
-        "mana_cost": null,
-        "duration": null,
-        "effects": [],
-        "details": [
-          "Damage Block uses pseudo-random distribution and has the following properties: When multiple different sources proc on the same attack, the one with a higher value takes priority. However, multiple sources of the same value stack multiplicatively. Does not work against damage from wards sources (e.g. Death Ward etc.). Does not reduce physical damage from abilities, except for these abilities ."
-        ],
-        "status_effects": {},
-        "misc": []
       }
     ],
     "components": [
       {
-        "name": "Vanguard",
-        "cost": 1700
+        "name": "Talisman of Evasion",
+        "cost": 1300
       },
       {
-        "name": "Crown",
-        "cost": 450
+        "name": "Splintmail",
+        "cost": 950
+      },
+      {
+        "name": "Ring of Health",
+        "cost": 700
       },
       {
         "name": "Recipe",
@@ -6909,9 +7515,9 @@
           "The direction is determined upon cast, it does not adapt if the target should turn while being moved.",
           "Can move the target over impassable terrain .",
           "Destroys trees within a 100 radius around the target.",
-          "modifier_item_hurricane_pike_active_alternate This modifier is used when cast on an enemy, it pushes the target and the caster away from each other. Forcefully Moves the target and the caster at a speed of 2250. Does not disable the affected units, they can still attack, cast abilities and items, and turn during it. Does not interrupt channeling abilities of the affected target. The direction is determined upon cast, it does not adapt if the units should turn while being moved. Can move the units over impassable terrain . Destroys trees within a 100 radius around the units.",
+          "modifier_item_hurricane_pike_active_alternate This modifier is used when cast on an enemy, it pushes the target and the caster away from each other. Forcefully Moves the target and the caster at a speed of 2125. Does not disable the affected units, they can still attack, cast abilities and items, and turn during it. Does not interrupt channeling abilities of the affected target. The direction is determined upon cast, it does not adapt if the units should turn while being moved. Can move the units over impassable terrain . Destroys trees within a 100 radius around the units.",
           "This modifier is used when cast on an enemy, it pushes the target and the caster away from each other.",
-          "Forcefully Moves the target and the caster at a speed of 2250.",
+          "Forcefully Moves the target and the caster at a speed of 2125.",
           "Does not disable the affected units, they can still attack, cast abilities and items, and turn during it. Does not interrupt channeling abilities of the affected target.",
           "Does not interrupt channeling abilities of the affected target.",
           "The direction is determined upon cast, it does not adapt if the units should turn while being moved.",
@@ -6958,6 +7564,76 @@
     "image_url": "https://liquipedia.net/commons/images/1/13/Hurricane_Pike_itemicon_dota2_gameasset.png"
   },
   {
+    "item": "Hydra's Breath",
+    "group": "Armaments",
+    "description": "Hydra's Breath is an item purchasable at the Base Shop, under Armaments .",
+    "cost": 5900,
+    "stats": {
+      "Strength": 15.0,
+      "Agility": 30.0,
+      "Attack Damage": 25.0
+    },
+    "additional_info": [
+      "The item's attributes grant the following additional stats:",
+      "330 health and 1.5 health regeneration .",
+      "30 attack speed and 5 main armor .",
+      "15 and 30 main attack damage to / heroes respectively.",
+      "20.25 main attack damage to universal heroes."
+    ],
+    "abilities": [
+      {
+        "name": "Miasma",
+        "description": "Attacks poison the target, dealing damage over time.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": "3",
+        "effects": [],
+        "details": [
+          "Reapplying the debuff refreshes the duration.",
+          "Does not affect the following units: Buildings Ward-type units . Ally units .",
+          "Buildings",
+          "Ward-type units .",
+          "Ally units ."
+        ],
+        "status_effects": {},
+        "misc": []
+      },
+      {
+        "name": "Polycephaly",
+        "description": "Ranged Only. Attacks have a chance to fire projectiles at 2 additional targets within a cone in front of the attacker. Does not trigger attack modifiers.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": null,
+        "effects": [],
+        "details": [
+          "Causes its wielder to perform instant attacks on the closest 3 enemies whenever they launch an attack projectile. This means all projectiles are released at the same time together with the main attack. It does not matter whether the primary attack misses . The extra projectiles travel at the same speed as the leading attack's projectile. This means their speed can be further increased by other attack projectile speed bonuses . These instant attacks may not proc any attack modifiers or on-hit effects. They do not have True Strike . They are affected by armor type , and blocked by damage block like regular attacks.",
+          "Does not stack with Flak Cannon , Split Shot , or Gunslinger ."
+        ],
+        "status_effects": {},
+        "misc": []
+      }
+    ],
+    "components": [
+      {
+        "name": "Specialist's Array",
+        "cost": 2550
+      },
+      {
+        "name": "Dragon Lance",
+        "cost": 1900
+      },
+      {
+        "name": "Orb of Venom",
+        "cost": 350
+      },
+      {
+        "name": "Recipe",
+        "cost": 1100
+      }
+    ],
+    "image_url": "https://liquipedia.net/commons/images/f/fd/Hydra%27s_Breath_itemicon_dota2_gameasset.png"
+  },
+  {
     "item": "Kaya",
     "group": "Armaments",
     "description": "Kaya is an item purchasable at the Base Shop, under Armaments .",
@@ -6975,7 +7651,20 @@
       "Multiple sources of mana regeneration amplification do not stack."
     ],
     "abilities": [],
-    "components": [],
+    "components": [
+      {
+        "name": "Staff of Wizardry",
+        "cost": 1000
+      },
+      {
+        "name": "Robe of the Magi",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 650
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/4/4f/Kaya_itemicon_dota2_gameasset.png"
   },
   {
@@ -7044,14 +7733,37 @@
         "duration": "4",
         "effects": [],
         "details": [
-          "Affects most offensive unit-targeted ability casts, except the following sources: Item abilities. Death Pact Holy Persuasion Ion Shell Enchant Devour Reflected abilities.",
-          "Item abilities.",
-          "Death Pact",
+          "Affects most offensive unit-targeted ability casts, except the following sources: Breathe Fire Crypt Swarm Holy Persuasion Devour Dual Breath Kazurai Katana Dragon Slave Earth Spike Shockwave Gobble Up Planar Pocket Gush Whirling Axes (Ranged) Instant kill abilities: Death Pact , Devour , Midnight Feast Spell Redirected abilities which castable only on ally Item abilities",
+          "Breathe Fire",
+          "Crypt Swarm",
           "Holy Persuasion",
-          "Ion Shell",
-          "Enchant",
           "Devour",
-          "Reflected abilities.",
+          "Dual Breath",
+          "Kazurai Katana",
+          "Dragon Slave",
+          "Earth Spike",
+          "Shockwave",
+          "Gobble Up",
+          "Planar Pocket",
+          "Whirling Axes (Ranged)",
+          "Instant kill abilities: Death Pact , Devour , Midnight Feast",
+          "Spell Redirected abilities which castable only on ally",
+          "Item abilities",
+          "Interacts with the following ground-targeted abilities: Boulder Smash Wrath of Nature Spectral Dagger Lightning Bolt",
+          "Boulder Smash",
+          "Wrath of Nature",
+          "Spectral Dagger",
+          "Lightning Bolt",
+          "Proc prioritises main target: Brain Sap Finger of Death Void Mind Flare Ancient Seal",
+          "Brain Sap",
+          "Finger of Death",
+          "Mind Flare",
+          "Ancient Seal",
+          "Proc depended on which projectile hits first: Poison Touch Stifling Dagger Arcane Bolt Soul Assumption",
+          "Poison Touch",
+          "Stifling Dagger",
+          "Arcane Bolt",
+          "Soul Assumption",
           "Applies Break on the target.",
           "If the ability's target turns invulnerable , or if Spell Block triggers, Empower Spell will not trigger. Even if the ability could dispel the invulnerability on the target, Empower Spell will still not trigger. However, if the target turns to invulnerable through the targeted ability, Empower Spell will proc.",
           "Even if the ability could dispel the invulnerability on the target, Empower Spell will still not trigger.",
@@ -7096,6 +7808,7 @@
         "duration": null,
         "effects": [],
         "details": [
+          "The proc chance is determined during the unit's attack point , and uses pseudo-random distribution ( +8.47% and P( 12 ) = 100% ).",
           "Chain Lightning can proc on the following units: Invisible enemies (i.e. instant attacks hitting an invisible enemy). Enemies inside the Fog of War . On already dead enemies (i.e. target died before projectile impact).",
           "Invisible enemies (i.e. instant attacks hitting an invisible enemy).",
           "Enemies inside the Fog of War .",
@@ -7126,7 +7839,20 @@
         ]
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Mithril Hammer",
+        "cost": 1600
+      },
+      {
+        "name": "Javelin",
+        "cost": 900
+      },
+      {
+        "name": "Gloves of Haste",
+        "cost": 450
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/b/b8/Maelstrom_itemicon_dota2_gameasset.png"
   },
   {
@@ -7266,6 +7992,7 @@
         "duration": null,
         "effects": [],
         "details": [
+          "The proc chance is determined during the unit's attack point , and uses pseudo-random distribution ( +8.47% and P( 12 ) = 100% ).",
           "Chain Lightning can proc on the following units: Invisible units (i.e. instant attacks hitting an invisible enemy). Enemies inside the Fog of War . On already dead enemies (i.e. target died before projectile impact).",
           "Invisible units (i.e. instant attacks hitting an invisible enemy).",
           "Enemies inside the Fog of War .",
@@ -7350,7 +8077,9 @@
         "status_effects": {
           "modifier_item_overwhelming_blink_debuff": "Overwhelming Blink: Taking damage over time. Movement speed reduced by x% and attack speed reduced by x."
         },
-        "misc": []
+        "misc": [
+          "The damage cooldown always triggers, even if the item is dropped, if the item is in the backpack or before being purchased."
+        ]
       }
     ],
     "components": [
@@ -7378,7 +8107,7 @@
       "Strength": 6.0,
       "Agility": 6.0,
       "Intelligence": 6.0,
-      "Health Regeneration": 6.5,
+      "Health Regeneration": 5.5,
       "Mana Regeneration": 2.25
     },
     "additional_info": [
@@ -7398,14 +8127,37 @@
         "duration": "3",
         "effects": [],
         "details": [
-          "Affects most offensive unit-targeted ability casts, except the following sources: Item abilities. Death Pact Holy Persuasion Ion Shell Enchant Devour Reflected abilities.",
-          "Item abilities.",
-          "Death Pact",
+          "Affects most offensive unit-targeted ability casts, except the following sources: Breathe Fire Crypt Swarm Holy Persuasion Devour Dual Breath Kazurai Katana Dragon Slave Earth Spike Shockwave Gobble Up Planar Pocket Gush Whirling Axes (Ranged) Instant kill abilities: Death Pact , Devour , Midnight Feast Spell Redirected abilities which castable only on ally Item abilities",
+          "Breathe Fire",
+          "Crypt Swarm",
           "Holy Persuasion",
-          "Ion Shell",
-          "Enchant",
           "Devour",
-          "Reflected abilities.",
+          "Dual Breath",
+          "Kazurai Katana",
+          "Dragon Slave",
+          "Earth Spike",
+          "Shockwave",
+          "Gobble Up",
+          "Planar Pocket",
+          "Whirling Axes (Ranged)",
+          "Instant kill abilities: Death Pact , Devour , Midnight Feast",
+          "Spell Redirected abilities which castable only on ally",
+          "Item abilities",
+          "Interacts with the following ground-targeted abilities: Boulder Smash Wrath of Nature Spectral Dagger Lightning Bolt",
+          "Boulder Smash",
+          "Wrath of Nature",
+          "Spectral Dagger",
+          "Lightning Bolt",
+          "Proc prioritises main target: Brain Sap Finger of Death Void Mind Flare Ancient Seal",
+          "Brain Sap",
+          "Finger of Death",
+          "Mind Flare",
+          "Ancient Seal",
+          "Proc depended on which projectile hits first: Poison Touch Stifling Dagger Arcane Bolt Soul Assumption",
+          "Poison Touch",
+          "Stifling Dagger",
+          "Arcane Bolt",
+          "Soul Assumption",
           "If the ability's target turns invulnerable , or if Spell Block triggers, Empower Spell will not trigger. Even if the ability could dispel the invulnerability on the target, Empower Spell will still not trigger. However, if the target turns to invulnerable through the targeted ability, Empower Spell will proc.",
           "Even if the ability could dispel the invulnerability on the target, Empower Spell will still not trigger.",
           "However, if the target turns to invulnerable through the targeted ability, Empower Spell will proc.",
@@ -7418,7 +8170,20 @@
         "misc": []
       }
     ],
-    "components": [],
+    "components": [
+      {
+        "name": "Diadem",
+        "cost": 1000
+      },
+      {
+        "name": "Perseverance",
+        "cost": 1400
+      },
+      {
+        "name": "Recipe",
+        "cost": 200
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/6/66/Phylactery_itemicon_dota2_gameasset.png"
   },
   {
@@ -7439,7 +8204,20 @@
       "Multiple sources of health restoration amplification do not stack."
     ],
     "abilities": [],
-    "components": [],
+    "components": [
+      {
+        "name": "Ogre Axe",
+        "cost": 1000
+      },
+      {
+        "name": "Belt of Strength",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 650
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/7/72/Sange_itemicon_dota2_gameasset.png"
   },
   {
@@ -7503,17 +8281,7 @@
         "duration": null,
         "effects": [],
         "details": [
-          "Lifesteal Only works with physical attack damage , does not work with magical or pure attack damage. Does not work with physical or any other spell damage . Does not work with instant attacks that do not trigger attack modifier. Stacks additively with other lifesteal sources. Treats illusions and creep-heroes as heroes. Does not work on the following units: Allied units . Buildings Ward-type units . Couriers",
-          "Only works with physical attack damage , does not work with magical or pure attack damage.",
-          "Does not work with physical or any other spell damage .",
-          "Does not work with instant attacks that do not trigger attack modifier.",
-          "Stacks additively with other lifesteal sources.",
-          "Treats illusions and creep-heroes as heroes.",
-          "Does not work on the following units: Allied units . Buildings Ward-type units . Couriers",
-          "Allied units .",
-          "Buildings",
-          "Ward-type units .",
-          "Couriers"
+          "Lifesteal Only works with physical attack damage , does not work with magical or pure attack damage. Does not work with physical or any other spell damage . Does not work with instant attacks that do not trigger attack modifier. Stacks additively with other lifesteal sources. Treats illusions and creep-heroes as heroes. Does not work on the following units: Allied units . Buildings Ward-type units . Couriers"
         ],
         "status_effects": {},
         "misc": []
@@ -7552,6 +8320,53 @@
     "image_url": "https://liquipedia.net/commons/images/e/e2/Satanic_itemicon_dota2_gameasset.png"
   },
   {
+    "item": "Specialist's Array",
+    "group": "Armaments",
+    "description": "Specialist's Array is an item purchasable at the Base Shop, under Armaments .",
+    "cost": 2550,
+    "stats": {
+      "Agility": 12.0,
+      "Attack Damage": 20.0
+    },
+    "additional_info": [
+      "The item's attributes grant the following additional stats:",
+      "12 attack speed and 2 main armor .",
+      "12 main attack damage to heroes.",
+      "5.4 main attack damage to universal heroes."
+    ],
+    "abilities": [
+      {
+        "name": "Splitshot",
+        "description": "Ranged Only. Attacks have a chance to fire projectiles at 2 additional targets within a cone in front of the attacker. Does not trigger attack modifiers.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": null,
+        "effects": [],
+        "details": [
+          "Causes its wielder to perform instant attacks on the closest 2 enemies whenever they launch an attack projectile. This means all projectiles are released at the same time together with the main attack. It does not matter whether the primary attack misses . The extra projectiles travel at the same speed as the leading attack's projectile. This means their speed can be further increased by other attack projectile speed bonuses . These instant attacks may not proc any attack modifiers or on-hit effects. They do not have True Strike . They are affected by armor type , and blocked by damage block like regular attacks.",
+          "Does not stack with Flak Cannon , Split Shot , or Gunslinger ."
+        ],
+        "status_effects": {},
+        "misc": []
+      }
+    ],
+    "components": [
+      {
+        "name": "Blade of Alacrity",
+        "cost": 1000
+      },
+      {
+        "name": "Broadsword",
+        "cost": 1000
+      },
+      {
+        "name": "Recipe",
+        "cost": 550
+      }
+    ],
+    "image_url": "https://liquipedia.net/commons/images/a/a6/Specialist%27s_Array_itemicon_dota2_gameasset.png"
+  },
+  {
     "item": "Swift Blink",
     "group": "Armaments",
     "description": "Swift Blink is an item purchasable at the Main Shop, under Armaments . However, it can only be completed with items from the Secret Shop .",
@@ -7583,13 +8398,17 @@
           "Radiant Fountain: -7456 / -6938",
           "Dire Fountain: 7408 / 6848",
           "Grants the caster phased movement .",
-          "the following stats:",
-          "main attack damage to ."
+          "The Agility bonus grants the following stats:",
+          "35 attack speed and 5.83 main armor .",
+          "35 main attack damage to heroes.",
+          "15.75 main attack damage to universal heroes."
         ],
         "status_effects": {
           "modifier_item_swift_blink_buff": "Swift Blink: Agility increased by x. Movement speed increased by x% and hero has phased movement."
         },
-        "misc": []
+        "misc": [
+          "The damage cooldown always triggers, even if the item is dropped, if the item is in the backpack or before being purchased."
+        ]
       }
     ],
     "components": [
@@ -7627,7 +8446,20 @@
       "Multiple sources of attack speed fully stack."
     ],
     "abilities": [],
-    "components": [],
+    "components": [
+      {
+        "name": "Blade of Alacrity",
+        "cost": 1000
+      },
+      {
+        "name": "Band of Elvenskin",
+        "cost": 450
+      },
+      {
+        "name": "Recipe",
+        "cost": 650
+      }
+    ],
     "image_url": "https://liquipedia.net/commons/images/3/3a/Yasha_itemicon_dota2_gameasset.png"
   },
   {
@@ -7665,5 +8497,86 @@
       }
     ],
     "image_url": "https://liquipedia.net/commons/images/d/d9/Yasha_and_Kaya_itemicon_dota2_gameasset.png"
+  },
+  {
+    "item": "Aghanim's Blessing",
+    "group": "Hidden Shop",
+    "description": "Aghanim's Blessing is an item purchasable at the Base Shop, under Magical . However, it requires an item from the Secret Shop to be completed.",
+    "cost": 5800,
+    "stats": {},
+    "additional_info": [
+      "Unlike Aghanim's Shard , multiple Aghanim's Blessings can be acquired, however, only one of them an be consumed."
+    ],
+    "abilities": [
+      {
+        "name": "Ability Upgrade",
+        "description": "Upgrades an existing ability or grants a new ability, unique to each hero.A hero can acquire the ability upgrade buff only once per match.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": null,
+        "effects": [],
+        "details": [
+          "modifier_item_aghanims_scepter Once the item enters the hero's inventory or backpack , it gets automatically consumed and converted into a permanent buff. This only happens once. If the hero already has the buff, the item does not get consumed. When consumed, the item is still counted towards the player's networth.",
+          "Once the item enters the hero's inventory or backpack , it gets automatically consumed and converted into a permanent buff.",
+          "This only happens once. If the hero already has the buff, the item does not get consumed.",
+          "When consumed, the item is still counted towards the player's networth.",
+          "Grants each hero one or multiple unique enhancements , ranging from ability upgrades, to hero changes, and sometimes even new abilities."
+        ],
+        "status_effects": {},
+        "misc": []
+      }
+    ],
+    "components": [
+      {
+        "name": "Aghanim's Scepter",
+        "cost": 4200
+      },
+      {
+        "name": "Recipe",
+        "cost": 1600
+      }
+    ],
+    "image_url": "https://liquipedia.net/commons/images/7/79/Aghanim%27s_Blessing_itemicon_dota2_gameasset.png"
+  },
+  {
+    "item": "Boots of Travel 2",
+    "group": "Hidden Shop",
+    "description": "",
+    "cost": null,
+    "stats": {
+      "Move Speed": 110.0
+    },
+    "additional_info": [],
+    "abilities": [
+      {
+        "name": "Upgrade: Town Portal Scroll",
+        "description": "Passively upgrades Town Portal Scroll. Prevents them from being consumed when used, sets the channel time to a fixed value that does not increase with subsequent teleports, and lowers the cooldown. Additionally, allows targeting and directly teleporting to any allied non-hero unit.",
+        "cooldown": null,
+        "mana_cost": null,
+        "duration": null,
+        "effects": [],
+        "details": [
+          "Town Portal Scroll refunding mechanics: The refunding triggers when Boots of Travel enters the hero's main inventory for the first time. Does not trigger when in the backpack , the stash , or in the Courier 's inventory. Triggers a second time upon upgrading the Boots of Travel, following the same rules as before. The refunding is bound to the item, not the hero. Acquiring Boots of Travel a second time triggers it again. Disassembling and Reassembling Boots of Travel triggers it again as well, since it is considered a new item. The refunding mechanic only considers Town Portal Scrolls within the dedicated slot. Scrolls within the stash or on the ground are ignored and not refunded. The refund value is based on the current sellback value: (100 if within the grace period, 50 otherwise).",
+          "The refunding triggers when Boots of Travel enters the hero's main inventory for the first time. Does not trigger when in the backpack , the stash , or in the Courier 's inventory. Triggers a second time upon upgrading the Boots of Travel, following the same rules as before. The refunding is bound to the item, not the hero. Acquiring Boots of Travel a second time triggers it again. Disassembling and Reassembling Boots of Travel triggers it again as well, since it is considered a new item.",
+          "Does not trigger when in the backpack , the stash , or in the Courier 's inventory.",
+          "Triggers a second time upon upgrading the Boots of Travel, following the same rules as before.",
+          "The refunding is bound to the item, not the hero. Acquiring Boots of Travel a second time triggers it again.",
+          "Disassembling and Reassembling Boots of Travel triggers it again as well, since it is considered a new item.",
+          "The refunding mechanic only considers Town Portal Scrolls within the dedicated slot. Scrolls within the stash or on the ground are ignored and not refunded. The refund value is based on the current sellback value: (100 if within the grace period, 50 otherwise).",
+          "Scrolls within the stash or on the ground are ignored and not refunded.",
+          "The refund value is based on the current sellback value: (100 if within the grace period, 50 otherwise).",
+          "Free Town Portal Scroll The free Town Portal Scroll can be sold, but has no sellback value. While owning Boots of Travel, the hero does not get the free Town Portal Scroll upon dying. Only checks the hero's main inventory, the backpack, and the stash. Does not check for Boots of Travel on the ground, or in other inventories (i.e. Courier ).",
+          "The free Town Portal Scroll can be sold, but has no sellback value.",
+          "While owning Boots of Travel, the hero does not get the free Town Portal Scroll upon dying. Only checks the hero's main inventory, the backpack, and the stash. Does not check for Boots of Travel on the ground, or in other inventories (i.e. Courier ).",
+          "Only checks the hero's main inventory, the backpack, and the stash.",
+          "Does not check for Boots of Travel on the ground, or in other inventories (i.e. Courier ).",
+          "See Teleport notes for Teleport mechanics."
+        ],
+        "status_effects": {},
+        "misc": []
+      }
+    ],
+    "components": [],
+    "image_url": "https://liquipedia.net/commons/images/5/50/Boots_of_Travel_2_itemicon_dota2_gameasset.png"
   }
 ]

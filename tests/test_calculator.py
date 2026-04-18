@@ -239,10 +239,11 @@ class TestChanceStat:
 
         block = resolved["block_damage_melee"]
         assert block.gold_per_point > 0
-        # block = armor / expected_physical_damage / armor_damage_factor = 137.5 / 150 / 0.06 = 15.28
+        # block = bonus_armor / expected_physical_damage / armor_damage_factor
+        # 7.41b: Chainmail 500g / 4 armor = 125 gpp → block = 125 / 150 / 0.06 = 13.89
         assert (
-            14 <= block.gold_per_point <= 16
-        ), f"block_damage_melee should be ~15.28, got {block.gold_per_point}"
+            13 <= block.gold_per_point <= 16
+        ), f"block_damage_melee should be ~13.89 (7.41b), got {block.gold_per_point}"
 
 
 class TestCalculatedAxiomsJson:

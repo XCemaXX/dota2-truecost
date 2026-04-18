@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axioms - Dota 2 Item Analysis (Patch 7.41b)</title>
+    <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #eee;
+    min-height: 100vh;
+    padding: 20px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+h1 { color: #f4d03f; margin-bottom: 10px; font-size: 1.8em; }
+.subtitle { color: #c4c4c4; margin-bottom: 20px; font-size: 0.9em; }
+a { color: #5dade2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Navigation */
+.nav { margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+.nav a {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 8px 16px;
+    border-radius: 5px;
+    color: #5dade2;
+    transition: background 0.2s;
+}
+.nav a:hover { background: rgba(93, 173, 226, 0.2); text-decoration: none; }
+.nav a.active { background: #5dade2; color: #1a1a2e; }
+
+/* Stats cards */
+.stats-row {
+    display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.stat-card {
+    background: rgba(45, 52, 54, 0.8);
+    padding: 12px 20px; border-radius: 8px;
+    border-left: 4px solid #5dade2;
+}
+.stat-card.overvalued { border-left-color: #27a95d; }
+.stat-card.undervalued { border-left-color: #e74c3c; }
+.stat-card.fair { border-left-color: #86cef3; }
+.stat-value { font-size: 22px; font-weight: bold; }
+.stat-label { font-size: 11px; color: #aaa; text-transform: uppercase; }
+
+/* Tables */
+.table-container { overflow-x: auto; margin-bottom: 20px; }
+table { border-collapse: collapse; width: 100%; background: rgba(26, 26, 46, 0.9); }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; }
+th {
+    background: #2d3436;
+    color: #f4d03f;
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+}
+th:hover { background: #3d4446; }
+th.sorted-asc::after { content: ' \25B2'; font-size: 0.7em; }
+th.sorted-desc::after { content: ' \25BC'; font-size: 0.7em; }
+tr:hover { background: rgba(93, 173, 226, 0.1); }
+.text-muted { color: #c4c4c4; font-size: 0.85em; }
+.text-green { color: #27a95d; }
+.text-red { color: #e74c3c; }
+.text-yellow { color: #86cef3; }
+.text-blue { color: #5dade2; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    h1 { font-size: 1.4em; }
+    .stats-row { flex-direction: column; }
+    th, td { padding: 8px; font-size: 0.9em; }
+}
+/* Compact overrides for data pages (denser layout) */
+h1 { margin-bottom: 5px; }
+.nav { margin-bottom: 10px; }
+.stats-row { gap: 10px; margin-bottom: 10px; }
+.stat-card { padding: 6px 14px; border-radius: 6px; border-left-width: 3px; }
+
+.compact-table th, .compact-table td { padding: 4px 10px; }
+.category-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    background: rgba(93, 173, 226, 0.2);
+    color: #5dade2;
+}
+.category-badge.attributes { background: rgba(46, 204, 113, 0.2); color: #27a95d; }
+.category-badge.offense { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+.category-badge.defense { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+.category-badge.sustain { background: rgba(155, 89, 182, 0.2); color: #9b59b6; }
+.category-badge.aura { background: rgba(241, 196, 15, 0.2); color: #f1c40f; }
+.category-badge.utility { background: rgba(26, 188, 156, 0.2); color: #1abc9c; }
+.category-badge.debuff { background: rgba(192, 57, 43, 0.2); color: #e67e22; }
+.category-badge.movement { background: rgba(52, 73, 94, 0.2); color: #85c1e9; }
+.category-badge.disable { background: rgba(142, 68, 173, 0.2); color: #bb8fce; }
+.depends { font-size: 0.8em; color: #c4c4c4; }
+    
+.nav-right { margin-left: auto; display: flex; gap: 15px; align-items: center; }
+#patchSelect {
+    background: rgba(45, 52, 54, 0.8);
+    color: #5dade2;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+#patchSelect:hover { background: rgba(93, 173, 226, 0.2); }
+#patchSelect option { background: #2d3436; color: #eee; }
+</style>
+</head>
+<body data-patch="7.41b">
+    <div class="container">
+        <h1>7.41b: Axiom Definitions</h1>
+
+        <div class="nav"><a href="axioms_table.html" class="active">Axioms</a> <a href="items_table.html" class="">Items</a> <a href="interactive_chart.html" class="">Chart</a><div class="nav-right"><select id="patchSelect"></select><a href="../comparison.html">Comparison</a></div></div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">89</div>
+                <div class="stat-label">Total Axioms</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">16</div>
+                <div class="stat-label">Offense</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Disable</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">11</div>
+                <div class="stat-label">Aura</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">10</div>
+                <div class="stat-label">Defense</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Movement</div>
+            </div>
+        </div>
+
+        <h2 style="color: #5dade2; margin: 20px 0 10px;">Constants</h2>
+        <div class="table-container">
+            <table class="compact-table" style="font-size: 0.9em;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Max Iterations</strong></td>
+                        <td class="text-muted">max_resolution_iterations</td>
+                        <td class="text-green">10</td>
+                        <td class="text-muted">Maximum axiom resolution iterations</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CD Efficiency</strong></td>
+                        <td class="text-muted">cooldown_efficiency</td>
+                        <td class="text-green">0.75</td>
+                        <td class="text-muted">Multiplier for CD-based abilities (0.75 = realistic usage)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Avg Aura Targets</strong></td>
+                        <td class="text-muted">aura_avg_targets</td>
+                        <td class="text-green">1.5</td>
+                        <td class="text-muted">Average heroes affected by aura</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor Factor</strong></td>
+                        <td class="text-muted">armor_damage_factor</td>
+                        <td class="text-green">0.06</td>
+                        <td class="text-muted">Dota 2 armor constant: each armor reduces phys dmg by ~6%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected HP Regen</strong></td>
+                        <td class="text-muted">expected_hp_regen</td>
+                        <td class="text-green">10</td>
+                        <td class="text-muted">STR hero base at Sange timing (~8-12 HP/sec total)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Mana Regen</strong></td>
+                        <td class="text-muted">expected_mana_regen</td>
+                        <td class="text-green">4</td>
+                        <td class="text-muted">INT hero at Kaya purchase (~4-5 mana/sec total)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Attack Damage</strong></td>
+                        <td class="text-muted">expected_attack_damage</td>
+                        <td class="text-green">200</td>
+                        <td class="text-muted">Carry hero total damage at crit item timing (~level 15-20)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Mana Pool</strong></td>
+                        <td class="text-muted">expected_mana_pool</td>
+                        <td class="text-green">780</td>
+                        <td class="text-muted">INT hero base mana at Null Talisman timing (~level 7)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Move Speed</strong></td>
+                        <td class="text-muted">expected_move_speed</td>
+                        <td class="text-green">365</td>
+                        <td class="text-muted">Base hero MS (~315) + boots (~50)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Phys Damage</strong></td>
+                        <td class="text-muted">expected_physical_damage</td>
+                        <td class="text-green">150</td>
+                        <td class="text-muted">Average physical attack damage in midgame</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Missing HP</strong></td>
+                        <td class="text-muted">expected_missing_hp</td>
+                        <td class="text-green">900</td>
+                        <td class="text-muted">STR hero at Heart timing: ~3000 HP, ~30% missing avg</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Enemy HP</strong></td>
+                        <td class="text-muted">expected_enemy_hp</td>
+                        <td class="text-green">3000</td>
+                        <td class="text-muted">Average enemy hero HP for %HP drain calculations</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Persistent DMG Uptime</strong></td>
+                        <td class="text-muted">permanent_dmg_uptime_during_whole_game</td>
+                        <td class="text-green">0.2</td>
+                        <td class="text-muted">% of game time persistent damage hits enemies</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Base Disable Gold</strong></td>
+                        <td class="text-muted">base_disable_gold</td>
+                        <td class="text-green">2000</td>
+                        <td class="text-muted">Gold per normalized second of disable.<br>Items compute cc_stat = duration / sqrt(cooldown), axiom prices it.<br>Formula: cc_value = (duration / sqrt(CD)) × base_disable_gold × type_coeff</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 style="color: #5dade2; margin: 20px 0 10px;">Axioms</h2>
+        <div class="table-container">
+            <table id="axiomsTable">
+                <thead>
+                    <tr>
+                        <th data-col="name">Name</th>
+                        <th data-col="gold">Gold/Point</th>
+                        <th data-col="method">Method</th>
+                        <th data-col="reference">Reference Item</th>
+                        <th data-col="category">Category</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Agility</strong><br><span class="text-muted">bonus_agility</span></td>
+                        <td class="text-green">100g</td>
+                        <td>reference_item</td>
+                        <td>Blade Of Alacrity</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="text-muted"><div>Mid-tier pure AGI item. Consistent with STR/INT pricing</div><div class="depends">Blade Of Alacrity(1000g) / Agility(10) = 100.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Intelligence</strong><br><span class="text-muted">bonus_intellect</span></td>
+                        <td class="text-green">100g</td>
+                        <td>reference_item</td>
+                        <td>Staff Of Wizardry</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="text-muted"><div>Mid-tier pure INT item. Consistent with STR/AGI pricing</div><div class="depends">Staff Of Wizardry(1000g) / Intelligence(10) = 100.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Strength</strong><br><span class="text-muted">bonus_strength</span></td>
+                        <td class="text-green">100g</td>
+                        <td>reference_item</td>
+                        <td>Ogre Axe</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="text-muted"><div>Mid-tier pure STR item. Consistent with AGI/INT pricing</div><div class="depends">Ogre Axe(1000g) / Strength(10) = 100.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor</strong><br><span class="text-muted">bonus_armor</span></td>
+                        <td class="text-green">125g</td>
+                        <td>reference_item</td>
+                        <td>Chainmail</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>Mid-tier pure armor item. Ring of Protection too cheap to be representative</div><div class="depends">Chainmail(500g) / Armor(4) = 125.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Evasion</strong><br><span class="text-muted">bonus_evasion</span></td>
+                        <td class="text-green">86.67g</td>
+                        <td>reference_item</td>
+                        <td>Talisman Of Evasion</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>Only pure evasion item. Component for Butterfly, counters physical attacks</div><div class="depends">Talisman Of Evasion(1300g) / Evasion(15) = 86.67</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Health</strong><br><span class="text-muted">bonus_health</span></td>
+                        <td class="text-green">4g</td>
+                        <td>reference_item</td>
+                        <td>Vitality Booster</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>Mid-tier pure HP item. Builds into major HP items</div><div class="depends">Vitality Booster(1000g) / Health(250) = 4.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Magic Resistance</strong><br><span class="text-muted">bonus_magic_resistance</span></td>
+                        <td class="text-green">50g</td>
+                        <td>reference_item</td>
+                        <td>Cloak</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>Only pure magic resistance item. Basic component for Hood/Pipe builds</div><div class="depends">Cloak(900g) / Magic Resistance(18) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Slow Resistance</strong><br><span class="text-muted">slow_resistance</span></td>
+                        <td class="text-green">13.28g</td>
+                        <td>reference_item</td>
+                        <td>Sange</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>Sange minus STR and hp_regen_amp. Remainder divided by slow resist</div><div class="depends">(Sange(2100g) - 1768g [Strength(16) × 100g + HP Regen Amplification(12) × 14g]) / Slow Resistance(25) = 13.28</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed</strong><br><span class="text-muted">bonus_movement_speed</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>reference_item</td>
+                        <td>Boots</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>Basic movement item. Foundation for all boot upgrades</div><div class="depends">Boots(500g) / Movement Speed(45) = 11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed %</strong><br><span class="text-muted">bonus_movement_speed_percent</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>reference_item</td>
+                        <td>Boots</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>Boots of Speed is the foundational movement item. Converted from flat MS to percent using base MS</div><div class="depends">Boots(500g) / Movement Speed %(45) = 11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Displacement</strong><br><span class="text-muted">displacement</span></td>
+                        <td class="text-green">1.88g</td>
+                        <td>reference_item</td>
+                        <td>Blink</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>Blink Dagger as reference for displacement per unit</div><div class="depends">Blink(2250g) / Displacement(1200) = 1.88</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Attack Speed</strong><br><span class="text-muted">bonus_attack_speed</span></td>
+                        <td class="text-green">22.50g</td>
+                        <td>reference_item</td>
+                        <td>Gloves</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Cheapest pure attack speed item. Basic component</div><div class="depends">Gloves(450g) / Attack Speed(20) = 22.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage</strong><br><span class="text-muted">bonus_damage</span></td>
+                        <td class="text-green">50g</td>
+                        <td>reference_item</td>
+                        <td>Blades Of Attack</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Cheapest pure damage item. Basic component for damage builds</div><div class="depends">Blades Of Attack(450g) / Damage(9) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chain Lightning Damage</strong><br><span class="text-muted">chain_damage</span></td>
+                        <td class="text-green">41.36g</td>
+                        <td>reference_item</td>
+                        <td>Maelstrom</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Maelstrom minus damage/AS, divided by 110 dmg and 25% chance</div><div class="depends">(Maelstrom(2950g) - 1812.5g [Damage(25) × 50g + Attack Speed(25) × 22.5g]) / Chain Lightning Damage(110) / chance(25%) = 41.36</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor Reduction</strong><br><span class="text-muted">corruption_armor</span></td>
+                        <td class="text-green">-150g</td>
+                        <td>reference_item</td>
+                        <td>Blight Stone</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Negative stat: gold_per_point will be negative</div><div class="depends">Blight Stone(300g) / Armor Reduction(-2) = -150.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Night Vision</strong><br><span class="text-muted">bonus_night_vision</span></td>
+                        <td class="text-green">2.12g</td>
+                        <td>reference_item</td>
+                        <td>Moon Shard</td>
+                        <td><span class="category-badge special">special</span></td>
+                        <td class="text-muted"><div>Moon Shard minus attack speed. Remainder divided by night vision</div><div class="depends">(Moon Shard(4000g) - 3150g [Attack Speed(140) × 22.5g]) / Night Vision(400) = 2.12</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>HP Regen</strong><br><span class="text-muted">bonus_health_regen</span></td>
+                        <td class="text-green">140g</td>
+                        <td>reference_item</td>
+                        <td>Ring Of Regen</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="text-muted"><div>Cheapest pure HP regen item. Basic component</div><div class="depends">Ring Of Regen(175g) / HP Regen(1.25) = 140.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifesteal</strong><br><span class="text-muted">bonus_lifesteal</span></td>
+                        <td class="text-green">50g</td>
+                        <td>reference_item</td>
+                        <td>Lifesteal</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="text-muted"><div>Only pure lifesteal item. Component for Satanic, Mask of Madness</div><div class="depends">Lifesteal(900g) / Lifesteal(18) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>MP Regen</strong><br><span class="text-muted">bonus_mana_regen</span></td>
+                        <td class="text-green">250.00g</td>
+                        <td>reference_item</td>
+                        <td>Sobi Mask</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="text-muted"><div>Cheapest pure mana regen item. Basic component</div><div class="depends">Sobi Mask(175g) / MP Regen(0.7) = 250.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Lifesteal</strong><br><span class="text-muted">spell_lifesteal</span></td>
+                        <td class="text-green">43.33g</td>
+                        <td>reference_item</td>
+                        <td>Voodoo Mask</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="text-muted"><div>Spell lifesteal is more expensive than regular lifesteal</div><div class="depends">Voodoo Mask(650g) / Spell Lifesteal(15) = 43.33</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Area of Effect</strong><br><span class="text-muted">aoe_bonus</span></td>
+                        <td class="text-green">20g</td>
+                        <td>reference_item</td>
+                        <td>Chasm Stone</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="text-muted"><div>Chasm Stone reference for AoE radius bonus. Does not stack across<br>Chasm-derived items in-game, but priced per-item here.</div><div class="depends">Chasm Stone(800g) / Area of Effect(40) = 20.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cooldown Reduction</strong><br><span class="text-muted">bonus_cooldown</span></td>
+                        <td class="text-green">6.40g</td>
+                        <td>reference_item</td>
+                        <td>Octarine Core</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="text-muted"><div>Octarine Core minus stats. Remainder divided by cooldown reduction</div><div class="depends">(Octarine Core(4900g) - 4740g [Health(450) × 4g + Mana(450) × 3.2g + MP Regen(6) × 250g]) / Cooldown Reduction(25) = 6.40</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana</strong><br><span class="text-muted">bonus_mana</span></td>
+                        <td class="text-green">3.20g</td>
+                        <td>reference_item</td>
+                        <td>Energy Booster</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="text-muted"><div>Cheapest pure mana pool item. Builds into Arcane Boots and major mana items</div><div class="depends">Energy Booster(800g) / Mana(250) = 3.20</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cast Range</strong><br><span class="text-muted">cast_range_bonus</span></td>
+                        <td class="text-green">3.07g</td>
+                        <td>reference_item</td>
+                        <td>Aether Lens</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="text-muted"><div>Aether Lens minus mana and mana regen stats. Remainder divided by cast range</div><div class="depends">(Aether Lens(2275g) - 1585g [Mana(300) × 3.2g + MP Regen(2.5) × 250g]) / Cast Range(225) = 3.07</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Amplification</strong><br><span class="text-muted">spell_amp</span></td>
+                        <td class="text-green">20g</td>
+                        <td>reference_item</td>
+                        <td>Kaya</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="text-muted"><div>Kaya minus INT and mana regen multiplier. Remainder divided by spell amp</div><div class="depends">(Kaya(2100g) - 1900g [Intelligence(16) × 100g + Mana Regen Multiplier(30) × 10g]) / Spell Amplification(10) = 20.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Max Mana %</strong><br><span class="text-muted">bonus_max_mana_percentage</span></td>
+                        <td class="text-green">24.96g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="text-muted"><div>Percentage increase to max mana pool</div><div class="depends">Mana(3.20g) × Expected Mana Pool(780) × 0.01 = 24.96</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Crit Expected DPS</strong><br><span class="text-muted">crit_expected_dps</span></td>
+                        <td class="text-green">100g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="text-muted"><div>Expected DPS increase from crit.<br>Used with custom_stats formula: crit_chance/100 * (crit_multiplier - 100).</div><div class="depends">Damage(50.00g) × Expected Attack Damage(200) × 0.01 = 100.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>HP Regen Amplification</strong><br><span class="text-muted">hp_regen_amp</span></td>
+                        <td class="text-green">14g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="text-muted"><div>Amplifies HP regen</div><div class="depends">HP Regen(140.00g) × Expected HP Regen(10) × 0.01 = 14.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Regen Multiplier</strong><br><span class="text-muted">mana_regen_multiplier</span></td>
+                        <td class="text-green">10.00g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="text-muted"><div>Amplifies mana regen</div><div class="depends">MP Regen(250.00g) × Expected Mana Regen(4) × 0.01 = 10.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Missing HP Regen</strong><br><span class="text-muted">missing_health_regen</span></td>
+                        <td class="text-green">1260g</td>
+                        <td>amplification_of</td>
+                        <td>-</td>
+                        <td><span class="category-badge amplification">amplification</span></td>
+                        <td class="text-muted"><div>1% missing HP regen</div><div class="depends">HP Regen(140.00g) × Expected Missing HP(900) × 0.01 = 1260.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>All Stats</strong><br><span class="text-muted">bonus_all_stats</span></td>
+                        <td class="text-green">100g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge attributes">attributes</span></td>
+                        <td class="text-muted"><div>+1 all stats = +1 STR + +1 AGI + +1 INT. Average of three</div><div class="depends">(Strength(100g) + Agility(100g) + Intelligence(100g)) / 3 = 100.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Attack Speed Aura</strong><br><span class="text-muted">aura_attack_speed</span></td>
+                        <td class="text-green">33.75g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Attack speed aura affects multiple heroes, like other auras</div><div class="depends">Attack Speed(22.5g) * Avg Aura Targets(1.5) = 33.75</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Health Regen Aura</strong><br><span class="text-muted">aura_health_regen</span></td>
+                        <td class="text-green">210g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Personal HP regen scaled by avg aura targets</div><div class="depends">HP Regen(140g) * Avg Aura Targets(1.5) = 210.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Regen Aura</strong><br><span class="text-muted">aura_mana_regen</span></td>
+                        <td class="text-green">375.00g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Personal mana regen scaled by avg aura targets</div><div class="depends">MP Regen(250g) * Avg Aura Targets(1.5) = 375.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Negative Armor Aura</strong><br><span class="text-muted">aura_negative_armor</span></td>
+                        <td class="text-green">-187.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Mirror of positive armor aura. Negative g/pt because stat value is negative</div><div class="depends">Positive Armor Aura(187.5g) * -1 = -187.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Negative Attack Speed Aura</strong><br><span class="text-muted">aura_negative_attack_speed</span></td>
+                        <td class="text-green">-33.75g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Mirror of positive AS aura. Negative g/pt because stat value is negative.<br>Debuff on enemies = benefit</div><div class="depends">Attack Speed Aura(33.75g) * -1 = -33.75</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Positive Armor Aura</strong><br><span class="text-muted">aura_positive_armor</span></td>
+                        <td class="text-green">187.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Same effect as Armor Aura. Different stat name in Assault Cuirass.</div><div class="depends">Armor Aura(187.5g) = 187.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor Aura</strong><br><span class="text-muted">bonus_aoe_armor</span></td>
+                        <td class="text-green">187.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Personal armor scaled by avg aura targets</div><div class="depends">Armor(125g) * Avg Aura Targets(1.5) = 187.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage Aura</strong><br><span class="text-muted">damage_aura</span></td>
+                        <td class="text-green">150g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Percentage-based aura: 1% damage = expected_attack_damage/100 flat damage per target</div><div class="depends">Damage(50g) * Expected Attack Damage(200) / 100 * Avg Aura Targets(1.5) = 150.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifesteal Aura</strong><br><span class="text-muted">lifesteal_aura</span></td>
+                        <td class="text-green">75g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Lifesteal scaled by avg aura targets</div><div class="depends">Lifesteal(50g) * Avg Aura Targets(1.5) = 75.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Replenish</strong><br><span class="text-muted">replenish_amount</span></td>
+                        <td class="text-green">375.00g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>Priced as aura_mana_regen (team mana restore). Use with uptime_stats + cooldown</div><div class="depends">Mana Regen Aura(375g) = 375.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Reduction Aura %</strong><br><span class="text-muted">restoration_reduction_aura</span></td>
+                        <td class="text-green">21g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge aura">aura</span></td>
+                        <td class="text-muted"><div>1% heal reduction on enemies, scaled by expected HP regen and avg aura targets</div><div class="depends">HP Regen(140g) * Expected HP Regen(10) / 100 * Avg Aura Targets(1.5) = 21.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Reduction</strong><br><span class="text-muted">heal_reduction</span></td>
+                        <td class="text-green">14g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge debuff">debuff</span></td>
+                        <td class="text-muted"><div>Lower bound: 1% heal reduction >= 1% HP regen amp.<br>Actual value higher since heal reduction also affects lifesteal, salves, etc.</div><div class="depends">HP Regen Amplification(14g) = 14.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Reduction (single target) %</strong><br><span class="text-muted">restoration_reduction_enemy</span></td>
+                        <td class="text-green">14g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge debuff">debuff</span></td>
+                        <td class="text-muted"><div>Single-target heal reduction. No aura multiplier. Spirit Vessel 70%: uptime applied separately.</div><div class="depends">HP Regen(140g) * Expected HP Regen(10) / 100 = 14.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Absorb Amount</strong><br><span class="text-muted">absorb_amount</span></td>
+                        <td class="text-green">2g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>Physical-only barrier = HP value halved.</div><div class="depends">Health(4g) / 2 = 2.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Block Damage (Melee)</strong><br><span class="text-muted">block_damage_melee</span></td>
+                        <td class="text-green">13.89g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>1 block = armor equivalent via expected phys damage and armor factor. Chance applied separately.</div><div class="depends">Armor(125g) / Expected Phys Damage(150) / Armor Factor(0.06) = 13.89</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Block Damage (Ranged)</strong><br><span class="text-muted">block_damage_ranged</span></td>
+                        <td class="text-green">13.89g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>Same as melee — pipeline applies melee/ranged switchable separately.</div><div class="depends">Armor(125g) / Expected Phys Damage(150) / Armor Factor(0.06) = 13.89</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage Reflection %</strong><br><span class="text-muted">damage_reflection_pct</span></td>
+                        <td class="text-green">37.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>1% reflected damage = expected_physical_damage/100 flat damage per hit received.<br>Halved (x0.5) because reflection only works when being attacked, not always.</div><div class="depends">Damage(50g) * Expected Phys Damage(150) / 100 / 2 = 37.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Armor Penalty</strong><br><span class="text-muted">penalty_armor</span></td>
+                        <td class="text-green">-125g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge defense">defense</span></td>
+                        <td class="text-muted"><div>For stats stored as positive values but representing armor loss (MoM berserk_armor_reduction).</div><div class="depends">Armor(125g) * -1 = -125.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed Aura</strong><br><span class="text-muted">aura_movement_speed</span></td>
+                        <td class="text-green">16.67g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="text-muted"><div>Personal MS scaled by avg aura targets (Drum of Endurance)</div><div class="depends">Movement Speed(11.1111g) * Avg Aura Targets(1.5) = 16.67</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed % Aura</strong><br><span class="text-muted">aura_movement_speed_pct</span></td>
+                        <td class="text-green">60.83g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="text-muted"><div>Personal % MS scaled by avg aura targets. For team active buffs (Drums, BoB).</div><div class="depends">Movement Speed %(40.5556g) * Avg Aura Targets(1.5) = 60.83</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heal Amplification</strong><br><span class="text-muted">heal_amplification</span></td>
+                        <td class="text-green">28g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="text-muted"><div>ASSUMPTION: heal amp = 2x HP regen amp</div><div class="depends">HP Regen Amplification(14g) * 2 = 28.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifesteal Amplification</strong><br><span class="text-muted">lifesteal_amplification</span></td>
+                        <td class="text-green">24.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="text-muted"><div>ASSUMPTION: from Sange ratio</div><div class="depends">HP Regen Amplification(14g) * 1.75 = 24.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Magic Resistance Aura</strong><br><span class="text-muted">magic_resistance_aura</span></td>
+                        <td class="text-green">75g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge derived">derived</span></td>
+                        <td class="text-muted"><div>Personal magic resist scaled by avg aura targets</div><div class="depends">Magic Resistance(50g) * Avg Aura Targets(1.5) = 75.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>AoE Slow (MS equiv)</strong><br><span class="text-muted">blast_slow_value</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>AoE slow converted to MS equivalent. Uptime + targets in custom_stat.</div><div class="depends">Movement Speed(11.1111g) = 11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cyclone (per sqrt-sec)</strong><br><span class="text-muted">cc_cyclone</span></td>
+                        <td class="text-green">800g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Full disable but target invulnerable — can't capitalize</div><div class="depends">Base Disable Gold(2000) * 0.4 = 800.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Disarm (per sqrt-sec)</strong><br><span class="text-muted">cc_disarm</span></td>
+                        <td class="text-green">400g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Prevents attacks only — weakest disable type</div><div class="depends">Base Disable Gold(2000) * 0.2 = 400.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hex (per sqrt-sec)</strong><br><span class="text-muted">cc_hex</span></td>
+                        <td class="text-green">2000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Silence+mute+disarm+slow. Best item delivery (800 range instant)</div><div class="depends">Base Disable Gold(2000) * 1.0 = 2000.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Immunity (per sqrt-sec)</strong><br><span class="text-muted">cc_immunity</span></td>
+                        <td class="text-green">2000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Blocks all targeted spells and CC — strongest defensive ability</div><div class="depends">Base Disable Gold(2000) * 1.0 = 2000.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Reflect (per sqrt-sec)</strong><br><span class="text-muted">cc_reflect</span></td>
+                        <td class="text-green">400g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Reflects targeted spells back + dispel on cast — weaker than immunity</div><div class="depends">Base Disable Gold(2000) * 0.2 = 400.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Root (per sqrt-sec)</strong><br><span class="text-muted">cc_root</span></td>
+                        <td class="text-green">1000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>No movement + cancels TP, but can still cast/attack</div><div class="depends">Base Disable Gold(2000) * 0.5 = 1000.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Silence (per sqrt-sec)</strong><br><span class="text-muted">cc_silence</span></td>
+                        <td class="text-green">1200g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Spell-only block, doesn't cancel TP</div><div class="depends">Base Disable Gold(2000) * 0.6 = 1200.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stun (per sqrt-sec)</strong><br><span class="text-muted">cc_stun</span></td>
+                        <td class="text-green">2000g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Full lockdown but item stuns have poor delivery</div><div class="depends">Base Disable Gold(2000) * 1.0 = 2000.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cold AS Slow (Melee)</strong><br><span class="text-muted">cold_attack_slow_melee</span></td>
+                        <td class="text-green">-22.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Skadi melee AS slow. Negative in data, inverted formula.</div><div class="depends">-1 * Attack Speed(22.5g) = -22.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cold AS Slow (Ranged)</strong><br><span class="text-muted">cold_attack_slow_ranged</span></td>
+                        <td class="text-green">-22.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Skadi ranged AS slow. Negative in data, inverted formula.</div><div class="depends">-1 * Attack Speed(22.5g) = -22.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Slow</strong><br><span class="text-muted">movespeed_slow</span></td>
+                        <td class="text-green">-11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge disable">disable</span></td>
+                        <td class="text-muted"><div>Slowing enemy = speeding self. Valve stores as negative, invert sign.</div><div class="depends">-1 * Movement Speed %(11.1111g) = -11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed (Melee)</strong><br><span class="text-muted">bonus_movement_speed_melee</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>Same value as generic move speed. Used for melee/ranged split items.</div><div class="depends">Movement Speed(11.1111g) * 1.0 = 11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed %</strong><br><span class="text-muted">bonus_movement_speed_pct</span></td>
+                        <td class="text-green">40.56g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>1% MS converted via flat MS axiom and expected move speed.</div><div class="depends">Movement Speed(11.1111g) * Expected Move Speed(365) / 100 = 40.56</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Movement Speed (Ranged)</strong><br><span class="text-muted">bonus_movement_speed_ranged</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>Same value as generic move speed. Used for melee/ranged split items.</div><div class="depends">Movement Speed(11.1111g) * 1.0 = 11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phase Movement Speed</strong><br><span class="text-muted">phase_movement_speed</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>Temporary MS bonus = bonus_movement_speed. Uptime applied at item level via uptime_stats</div><div class="depends">Movement Speed(11.1111g) = 11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phase Movement Speed (Ranged)</strong><br><span class="text-muted">phase_movement_speed_range</span></td>
+                        <td class="text-green">11.11g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge movement">movement</span></td>
+                        <td class="text-muted"><div>Same as phase_movement_speed but for ranged heroes. Uptime applied at item level</div><div class="depends">Movement Speed(11.1111g) = 11.11</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>AoE Burst Damage</strong><br><span class="text-muted">blast_aoe_damage</span></td>
+                        <td class="text-green">4g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>AoE magic burst. Same g/pt as HP. AoE multiplied in custom_stat.</div><div class="depends">Health(4g) = 4.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Attack Speed Percent</strong><br><span class="text-muted">bonus_attack_speed_pct</span></td>
+                        <td class="text-green">22.50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Percentage AS, counted same as regular</div><div class="depends">Attack Speed(22.5g) = 22.50</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pierce Damage</strong><br><span class="text-muted">bonus_chance_damage</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Per-attack proc damage priced as attack damage. Chance applied separately.</div><div class="depends">Damage(50g) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Base Damage</strong><br><span class="text-muted">bonus_damage_base</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Rapier base damage. ALWAYS active, regardless of mode.</div><div class="depends">Damage(50g) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage (Melee)</strong><br><span class="text-muted">bonus_damage_melee</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Same value as generic damage. Used for melee/ranged split items.</div><div class="depends">Damage(50g) * 1.0 = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage (Ranged)</strong><br><span class="text-muted">bonus_damage_range</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Same value as generic damage. Used for melee/ranged split items.</div><div class="depends">Damage(50g) * 1.0 = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spell Damage</strong><br><span class="text-muted">bonus_spell_damage</span></td>
+                        <td class="text-green">4g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Flat magic damage proc. 1 damage = 1 HP removed.<br>Used with uptime_stats for cooldown-based procs.</div><div class="depends">Health(4g) = 4.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Magic/Ability Damage</strong><br><span class="text-muted">damage</span></td>
+                        <td class="text-green">4g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Magic/ability burst damage. 1 damage = 1 HP removed, same gold value</div><div class="depends">Health(4g) = 4.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Damage Per Second</strong><br><span class="text-muted">damage_per_second</span></td>
+                        <td class="text-green">15g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Persistent AoE DPS scaled by avg targets and uptime.</div><div class="depends">Damage(50g) * Avg Aura Targets(1.5) * Persistent DMG Uptime(0.2) = 15.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Burn</strong><br><span class="text-muted">feedback_mana_burn</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Mana burn = physical damage per hit + mana drain. Priced as bonus_damage</div><div class="depends">Damage(50g) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Illusion DPS (dmg equiv)</strong><br><span class="text-muted">illusion_dps</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Illusion damage as effective bonus damage.<br>Custom_stat computes: %dmg × count × uptime / survivability × expected_dmg.</div><div class="depends">Damage(50g) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Intelligence Damage</strong><br><span class="text-muted">int_damage</span></td>
+                        <td class="text-green">50g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge offense">offense</span></td>
+                        <td class="text-muted"><div>Intelligence-based damage. Valued same as regular attack damage</div><div class="depends">Damage(50g) = 50.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Switchable Attribute</strong><br><span class="text-muted">bonus_stat</span></td>
+                        <td class="text-green">100g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge special">special</span></td>
+                        <td class="text-muted"><div>Switchable attribute (STR/AGI/INT), not all_stats! (Power Treads)</div><div class="depends">Strength(100g) = 100.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Gain (sacrifice)</strong><br><span class="text-muted">mana_gain</span></td>
+                        <td class="text-green">55.00g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="text-muted"><div>Mana regen value minus HP drain cost, halved for temp mana.</div><div class="depends">(MP Regen(250g) - HP Regen(140g)) / 2 = 55.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>HP Regen Penalty</strong><br><span class="text-muted">penalty_health_regen</span></td>
+                        <td class="text-green">-140g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="text-muted"><div>For stats stored as positive values but representing HP drain (Armlet unholy_health_drain).</div><div class="depends">HP Regen(140g) * -1 = -140.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Restore per Charge</strong><br><span class="text-muted">restore_per_charge</span></td>
+                        <td class="text-green">390g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge sustain">sustain</span></td>
+                        <td class="text-muted"><div>Restores HP and mana equally per charge. Value = HP regen + mana regen axioms.</div><div class="depends">HP Regen(140g) + MP Regen(250g) = 390.00</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bonus Gold</strong><br><span class="text-muted">bonus_gold</span></td>
+                        <td class="text-green">16.67g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="text-muted"><div>Average game time / charge restore time = uses per game</div><div class="depends">1500 / 90 = 16.67</div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mana Cost Reduction</strong><br><span class="text-muted">manacost_reduction</span></td>
+                        <td class="text-green">24.96g</td>
+                        <td>formula</td>
+                        <td>-</td>
+                        <td><span class="category-badge utility">utility</span></td>
+                        <td class="text-muted"><div>1% mana cost reduction ≈ 1% more effective mana pool</div><div class="depends">Max Mana %(24.96g) = 24.96</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const table = document.getElementById('axiomsTable');
+        const headers = table.querySelectorAll('th[data-col]');
+        let currentSort = { col: null, desc: false };
+
+        headers.forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                const desc = currentSort.col === col ? !currentSort.desc : false;
+                currentSort = { col, desc };
+
+                // Update header classes
+                headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                th.classList.add(desc ? 'sorted-desc' : 'sorted-asc');
+
+                // Sort rows
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const colIndex = Array.from(headers).indexOf(th);
+                    const aVal = a.cells[colIndex].textContent.trim().toLowerCase();
+                    const bVal = b.cells[colIndex].textContent.trim().toLowerCase();
+
+                    // Try numeric sort for gold column
+                    if (col === 'gold') {
+                        const aNum = parseFloat(aVal.replace(/[^0-9.-]/g, '')) || 0;
+                        const bNum = parseFloat(bVal.replace(/[^0-9.-]/g, '')) || 0;
+                        return desc ? bNum - aNum : aNum - bNum;
+                    }
+
+                    return desc ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    })();
+    </script>
+
+<script src="../patches.js"></script>
+<script>
+(function() {
+    var sel = document.getElementById('patchSelect');
+    if (!sel || typeof PATCHES_LIST === 'undefined') return;
+    var currentPatch = document.body.getAttribute('data-patch');
+    var page = location.pathname.split('/').pop() || 'interactive_chart.html';
+    for (var i = PATCHES_LIST.length - 1; i >= 0; i--) {
+        var opt = document.createElement('option');
+        opt.value = PATCHES_LIST[i];
+        opt.textContent = 'Patch ' + PATCHES_LIST[i];
+        if (PATCHES_LIST[i] === currentPatch) opt.selected = true;
+        sel.appendChild(opt);
+    }
+    sel.addEventListener('change', function() {
+        location.href = '../patch_' + this.value + '/' + page;
+    });
+})();
+</script>
+</body>
+</html>
